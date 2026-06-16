@@ -1,5 +1,7 @@
 import pandas as pd
 
+from app.utils.logger import logger
+
 
 def find_col(df, keywords):
     """
@@ -67,17 +69,19 @@ def filter_pending(df):
 
     filtered = df[
         (
-            (v1.notna()) &
+            (v1.notna()) & 
             (d1.isna())
         )
-        |
+        | 
         (
-            (v2.notna()) &
+            (v2.notna()) & 
             (d2.isna())
         )
     ]
 
-    print(f"[INFO] 미처리 건수: {len(filtered)}")
+    logger.info(
+        f"미처리 건수: {len(filtered)}"
+    )
 
     return filtered
 
@@ -123,6 +127,8 @@ def group_by_vendor(df):
 
             groups[vendor].append(row)
 
-    print(f"[INFO] 업체 수: {len(groups)}")
+    logger.info(
+        f"업체 수: {len(groups)}"
+    )
 
     return groups

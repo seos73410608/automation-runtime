@@ -6,6 +6,8 @@ from app.config.settings import (
     RESULT_ZIP_NAME
 )
 
+from app.utils.logger import logger
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -29,6 +31,8 @@ def create_zip(files):
                 os.path.basename(file)
             )
 
-    print(f"[INFO] ZIP 생성 완료: {zip_path}")
+    logger.info(
+        f"ZIP 생성 완료: {zip_path}"
+    )
 
     return zip_path

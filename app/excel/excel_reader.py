@@ -2,6 +2,7 @@ import pandas as pd
 import glob
 
 from app.config.settings import INPUT_DIR
+from app.utils.logger import logger
 
 
 def get_input_file():
@@ -9,9 +10,13 @@ def get_input_file():
     files = glob.glob(f"{INPUT_DIR}/*.xls*")
 
     if not files:
-        raise Exception("input 폴더에 엑셀 파일이 없습니다.")
+        raise Exception(
+            "input 폴더에 엑셀 파일이 없습니다."
+        )
 
-    print(f"[INFO] 사용 파일: {files[0]}")
+    logger.info(
+        f"사용 파일: {files[0]}"
+    )
 
     return files[0]
 
@@ -42,7 +47,9 @@ def read_excel():
 
     except Exception as e:
 
-        print(f"[WARN] fallback 실행: {e}")
+        logger.warning(
+            f"fallback 실행: {e}"
+        )
 
         df = pd.read_excel(
             file_path,
@@ -57,7 +64,12 @@ def read_excel():
         .str.strip()
     )
 
-    print(f"[INFO] 로딩 완료: {len(df)} rows")
-    print(f"[INFO] 컬럼: {df.columns.tolist()}")
+    logger.info(
+        f"로딩 완료: {len(df)} rows"
+    )
+
+    logger.info(
+        f"컬럼: {df.columns.tolist()}"
+    )
 
     return df

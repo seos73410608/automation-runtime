@@ -6,6 +6,8 @@ from app.config.settings import (
     TEMP_DIR
 )
 
+from app.utils.logger import logger
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(TEMP_DIR, exist_ok=True)
 
@@ -33,6 +35,8 @@ def export_excel(groups):
 
         files.append(file_path)
 
-    print(f"[INFO] 생성 파일 수: {len(files)}")
+    logger.info(
+        f"생성 파일 수: {len(files)}"
+    )
 
     return files

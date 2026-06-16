@@ -9,6 +9,7 @@ from app.rules.repair_pending_rule import (
 )
 
 from app.utils.zip_creator import create_zip
+from app.utils.logger import logger
 
 from app.models.job_result import JobResult
 
@@ -44,7 +45,7 @@ class RepairPendingJob(BaseJob):
 
         except Exception as e:
 
-            print(f"[ERROR] {e}")
+            logger.error(str(e))
 
             return JobResult(
                 job_name=JOB_REPAIR_PENDING,
