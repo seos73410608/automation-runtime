@@ -32,7 +32,8 @@ AS접수현황 엑셀 파일을 분석하여
 app/
 
 ├── config
-│   └── settings.py
+│   ├── settings.py
+│   └── argument_parser.py
 
 ├── excel
 │   ├── excel_reader.py
@@ -84,31 +85,21 @@ python -m app.main
 
 ## 특정 Job 실행
 
-### Repair Pending
+Repair Pending
 
-```bash
-python -m app.main repair_pending
-```
+python -m app.main --job repair_pending
 
-### Inbound Missing
+Inbound Missing
 
-```bash
-python -m app.main inbound_missing
-```
+python -m app.main --job inbound_missing
 
-### Settlement Missing
+Settlement Missing
 
-```bash
-python -m app.main settlement_missing
-```
+python -m app.main --job settlement_missing
 
-### TC Scan
+TC Scan
 
-```bash
-python -m app.main tc_scan
-```
-
----
+python -m app.main --job tc_scan
 
 # 실행 결과 예시
 
@@ -209,18 +200,29 @@ JOB_REGISTRY = {
 * Job Registry 도입
 * CLI Job 선택 기능 추가
 
+
+## v0.2.7
+
+* ArgumentParser 도입
+* --job 옵션 지원
+* CLI 인터페이스 표준화
+* FastAPI 전환 준비
 ---
 
 # 향후 계획
 
 ## v0.3.0
 
+v0.3.0
+
 FastAPI Web Runtime
 
-* 파일 업로드
-* Job 선택
+* Job 선택 화면
+* Excel 업로드
 * 실행 결과 조회
 * ZIP 다운로드
+* 기존 Job Registry 재사용
+* 기존 JobResult 재사용
 
 ---
 

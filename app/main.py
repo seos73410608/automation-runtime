@@ -1,4 +1,4 @@
-import sys
+from app.cli.argument_parser import parse_args
 
 from app.jobs.job_registry import JOB_REGISTRY
 
@@ -11,11 +11,9 @@ from app.utils.logger import logger
 
 def main():
 
-    job_name = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else "repair_pending"
-    )
+    args = parse_args()
+
+    job_name = args.job
 
     if job_name not in JOB_REGISTRY:
 
