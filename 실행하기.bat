@@ -7,7 +7,7 @@ echo ==================================
 
 cd /d %~dp0
 
-python -m app.main
+python -m app.runner
 
 if %errorlevel% neq 0 (
     echo [ERROR] 실행 실패

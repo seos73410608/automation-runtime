@@ -1,38 +1,12 @@
-from app.cli.argument_parser import parse_args
+"""
+Future FastAPI Entry Point
 
-from app.jobs.job_registry import JOB_REGISTRY
-
-from app.presenters.job_result_presenter import (
-    print_result
-)
-
-from app.utils.logger import logger
+v0.3.0부터 FastAPI 애플리케이션 진입점으로 사용 예정
+"""
 
 
 def main():
-
-    args = parse_args()
-
-    job_name = args.job
-
-    if job_name not in JOB_REGISTRY:
-
-        logger.error(
-            f"지원하지 않는 Job: {job_name}"
-        )
-
-        logger.info("사용 가능 Job 목록")
-
-        for name in JOB_REGISTRY:
-            logger.info(f" - {name}")
-
-        return
-
-    job = JOB_REGISTRY[job_name]()
-
-    result = job.execute()
-
-    print_result(result)
+    pass
 
 
 if __name__ == "__main__":
