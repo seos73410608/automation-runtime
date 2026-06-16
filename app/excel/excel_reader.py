@@ -1,21 +1,12 @@
 import pandas as pd
-import os
 import glob
 
-# 프로젝트 루트
-BASE_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        ".."
-    )
-)
-
-INPUT_DIR = os.path.join(BASE_DIR, "input")
+from app.config.settings import INPUT_DIR
 
 
 def get_input_file():
-    files = glob.glob(os.path.join(INPUT_DIR, "*.xls*"))
+
+    files = glob.glob(f"{INPUT_DIR}/*.xls*")
 
     if not files:
         raise Exception("input 폴더에 엑셀 파일이 없습니다.")

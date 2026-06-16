@@ -1,17 +1,10 @@
 import os
 import zipfile
 
-
-# 프로젝트 루트
-BASE_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        ".."
-    )
+from app.config.settings import (
+    OUTPUT_DIR,
+    RESULT_ZIP_NAME
 )
-
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -20,7 +13,7 @@ def create_zip(files):
 
     zip_path = os.path.join(
         OUTPUT_DIR,
-        "result.zip"
+        RESULT_ZIP_NAME
     )
 
     with zipfile.ZipFile(

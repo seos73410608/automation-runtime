@@ -1,18 +1,10 @@
 import pandas as pd
 import os
 
-
-# 프로젝트 루트
-BASE_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        ".."
-    )
+from app.config.settings import (
+    OUTPUT_DIR,
+    TEMP_DIR
 )
-
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-TEMP_DIR = os.path.join(OUTPUT_DIR, "temp")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(TEMP_DIR, exist_ok=True)

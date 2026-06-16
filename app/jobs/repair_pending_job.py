@@ -10,6 +10,8 @@ from app.utils.zip_creator import create_zip
 
 from app.models.job_result import JobResult
 
+from app.config.settings import JOB_REPAIR_PENDING
+
 
 def execute():
 
@@ -26,7 +28,7 @@ def execute():
         zip_path = create_zip(files)
 
         return JobResult(
-            job_name="RepairPending",
+            job_name=JOB_REPAIR_PENDING,
             total_rows=len(df),
             filtered_rows=len(filtered),
             vendor_count=len(groups),
@@ -41,7 +43,7 @@ def execute():
         print(f"[ERROR] {e}")
 
         return JobResult(
-            job_name="RepairPending",
+            job_name=JOB_REPAIR_PENDING,
             total_rows=0,
             filtered_rows=0,
             vendor_count=0,
