@@ -1,13 +1,11 @@
-from app.jobs.repair_pending_job import RepairPendingJob
-
-JOBS = {
-    "repair_pending": RepairPendingJob()
-}
+from app.jobs.job_registry import JOB_REGISTRY
 
 
 def main():
 
-    job = JOBS["repair_pending"]
+    job_name = "repair_pending"
+
+    job = JOB_REGISTRY[job_name]()
 
     result = job.execute()
 

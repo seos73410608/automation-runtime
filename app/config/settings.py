@@ -25,3 +25,9 @@ RESULT_ZIP_NAME = "result.zip"
 
 # Job 이름
 JOB_REPAIR_PENDING = "RepairPending"
+
+JOB_INBOUND_MISSING = "InboundMissing"
+
+JOB_SETTLEMENT_MISSING = "SettlementMissing"
+
+JOB_TC_SCAN = "TcScan"
