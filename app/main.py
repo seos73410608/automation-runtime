@@ -1,9 +1,11 @@
-from app.jobs.repair_pending_job import execute
+from app.jobs.repair_pending_job import RepairPendingJob
 
 
 def main():
 
-    result = execute()
+    job = RepairPendingJob()
+
+    result = job.execute()
 
     print()
     print("==================================")

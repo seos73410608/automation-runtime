@@ -1,3 +1,5 @@
+from app.jobs.base_job import BaseJob
+
 from app.excel.excel_reader import read_excel
 from app.excel.excel_exporter import export_excel
 
@@ -13,42 +15,44 @@ from app.models.job_result import JobResult
 from app.config.settings import JOB_REPAIR_PENDING
 
 
-def execute():
+class RepairPendingJob(BaseJob):
 
-    try:
+    def execute(self):
 
-        df = read_excel()
+        try:
 
-        filtered = filter_pending(df)
+            df = read_excel()
 
-        groups = group_by_vendor(filtered)
+            filtered = filter_pending(df)
 
-        files = export_excel(groups)
+            groups = group_by_vendor(filtered)
 
-        zip_path = create_zip(files)
+            files = export_excel(groups)
 
-        return JobResult(
-            job_name=JOB_REPAIR_PENDING,
-            total_rows=len(df),
-            filtered_rows=len(filtered),
-            vendor_count=len(groups),
-            output_file_count=len(files),
-            zip_file_path=zip_path,
-            success=True,
-            message="처리 완료"
-        )
+            zip_path = create_zip(files)
 
-    except Exception as e:
+            return JobResult(
+                job_name=JOB_REPAIR_PENDING,
+                total_rows=len(df),
+                filtered_rows=len(filtered),
+                vendor_count=len(groups),
+                output_file_count=len(files),
+                zip_file_path=zip_path,
+                success=True,
+                message="처리 완료"
+            )
 
-        print(f"[ERROR] {e}")
+        except Exception as e:
 
-        return JobResult(
-            job_name=JOB_REPAIR_PENDING,
-            total_rows=0,
-            filtered_rows=0,
-            vendor_count=0,
-            output_file_count=0,
-            zip_file_path="",
-            success=False,
-            message=str(e)
-        )
+            print(f"[ERROR] {e}")
+
+            return JobResult(
+                job_name=JOB_REPAIR_PENDING,
+                total_rows=0,
+                filtered_rows=0,
+                vendor_count=0,
+                output_file_count=0,
+                zip_file_path="",
+                success=False,
+                message=str(e)
+            )
