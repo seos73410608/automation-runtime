@@ -8,17 +8,45 @@ from app.rules.repair_pending_rule import (
 
 from app.utils.zip_creator import create_zip
 
+from app.models.job_result import JobResult
+
 
 def execute():
 
-    df = read_excel()
+    try:
 
-    filtered = filter_pending(df)
+        df = read_excel()
 
-    groups = group_by_vendor(filtered)
+        filtered = filter_pending(df)
 
-    files = export_excel(groups)
+        groups = group_by_vendor(filtered)
 
-    create_zip(files)
+        files = export_excel(groups)
 
-    print("[DONE] 전체 처리 완료")
+        zip_path = create_zip(files)
+
+        return JobResult(
+            job_name="RepairPending",
+            total_rows=len(df),
+            filtered_rows=len(filtered),
+            vendor_count=len(groups),
+            output_file_count=len(files),
+            zip_file_path=zip_path,
+            success=True,
+            message="처리 완료"
+        )
+
+    except Exception as e:
+
+        print(f"[ERROR] {e}")
+
+        return JobResult(
+            job_name="RepairPending",
+            total_rows=0,
+            filtered_rows=0,
+            vendor_count=0,
+            output_file_count=0,
+            zip_file_path="",
+            success=False,
+            message=str(e)
+        )
