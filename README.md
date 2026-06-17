@@ -212,3 +212,7 @@ Export
 Result
 
 공통 Runtime 위에서 다양한 업무 자동화를 수행하는 플랫폼을 목표로 합니다.
+
+## 설치
+
+pip install -r requirements.txt
