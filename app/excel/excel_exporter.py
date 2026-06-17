@@ -8,9 +8,16 @@ from app.config.settings import (
 
 from app.utils.logger import logger
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(TEMP_DIR, exist_ok=True)
+# 초기 생성
+os.makedirs(
+    OUTPUT_DIR,
+    exist_ok=True
+)
 
+os.makedirs(
+    TEMP_DIR,
+    exist_ok=True
+)
 
 EXPORT_COLUMNS = [
     "현재수선현황",
@@ -32,6 +39,12 @@ EXPORT_COLUMNS = [
 
 
 def export_excel(groups):
+
+    # 실행 시점에도 생성 보장
+    os.makedirs(
+        TEMP_DIR,
+        exist_ok=True
+    )
 
     files = []
 
@@ -59,11 +72,14 @@ def export_excel(groups):
             request_date = ""
 
             if vendor_no == 1:
+
                 request_date = row.get(
                     "업체의뢰일1",
                     ""
                 )
+
             elif vendor_no == 2:
+
                 request_date = row.get(
                     "업체의뢰일2",
                     ""
@@ -97,7 +113,9 @@ def export_excel(groups):
             index=False
         )
 
-        files.append(file_path)
+        files.append(
+            file_path
+        )
 
         logger.info(
             f"{vendor} 파일 생성 완료 ({len(df)}건)"
