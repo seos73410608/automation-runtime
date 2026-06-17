@@ -154,6 +154,13 @@ runner.py 분리
 CLI Entry Point 분리
 main.py FastAPI 전용 예약
 Web Runtime 전환 준비 완료
+v0.2.9
+Repair Pending Template Exporter 개선
+업체1/업체2 완료여부 분리 처리
+원전미입고 포맷 기반 업체별 파일 생성
+업체의뢰일 자동 매핑
+실운영 데이터 검증 완료
+
 향후 계획
 v0.3.0
 
