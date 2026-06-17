@@ -15,6 +15,13 @@ from app.models.job_result import JobResult
 
 from app.config.settings import JOB_REPAIR_PENDING
 
+from app.mail.mail_sender import send_mail
+
+from app.mail.mail_template import (
+    build_subject,
+    build_body
+)
+
 
 class RepairPendingJob(BaseJob):
 
@@ -31,6 +38,25 @@ class RepairPendingJob(BaseJob):
             files = export_excel(groups)
 
             zip_path = create_zip(files)
+
+            
+            subject = build_subject(
+                JOB_REPAIR_PENDING
+            )
+
+            body = build_body(
+                job_name=JOB_REPAIR_PENDING,
+                total_rows=len(df),
+                filtered_rows=len(filtered),
+                vendor_count=len(groups),
+                file_count=len(files)
+            )
+
+            send_mail(
+                subject=subject,
+                body=body,
+                attachment_path=zip_path
+            )
 
             return JobResult(
                 job_name=JOB_REPAIR_PENDING,

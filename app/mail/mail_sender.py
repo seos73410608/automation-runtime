@@ -1,5 +1,7 @@
 import smtplib
 
+from pathlib import Path
+
 from email.message import EmailMessage
 
 from app.utils.logger import logger
@@ -39,6 +41,10 @@ def send_mail(
                 f"첨부파일 추가 : {attachment_path}"
             )
 
+            filename = Path(
+                attachment_path
+            ).name
+
             with open(
                 attachment_path,
                 "rb"
@@ -48,7 +54,7 @@ def send_mail(
                     f.read(),
                     maintype="application",
                     subtype="zip",
-                    filename="result.zip"
+                    filename=filename
                 )
 
         with smtplib.SMTP(

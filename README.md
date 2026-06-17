@@ -2,25 +2,48 @@ automation-runtime
 
 업무 자동화 Runtime 플랫폼
 
-현재는 수선업체 미처리건(Repair Pending) 자동화를 지원하며,
-향후 원전미입고(Inbound Missing), 정산누락(Settlement Missing), TC 미스캔(TC Scan) 등의 업무 자동화를 동일 Runtime 위에서 수행할 수 있도록 설계되었습니다.
+현재 버전: v0.2.11
 
-현재 지원 기능
+현재는 수선업체 미처리건(Repair Pending) 자동화를 지원하며,
+
+향후
+
+Inbound Missing
+Settlement Missing
+TC Scan
+
+등의 업무 자동화를 동일 Runtime 위에서 수행할 수 있도록 설계되었습니다.
+
+주요 기능
 Repair Pending Automation
 
 AS접수현황 엑셀 파일을 분석하여
 
+추출 조건
 수선업체1 존재 + 업체완료일1 미입력
 수선업체2 존재 + 업체완료일2 미입력
-
-조건의 미처리 건을 추출하고,
-
+자동 수행 기능
+미처리 건 추출
 업체별 그룹핑
 업체별 Excel 생성
 ZIP 생성
-
-을 자동 수행합니다.
-
+결과 메일 자동 발송
+처리 흐름
+Excel Input
+      ↓
+Rule Engine
+      ↓
+Filtering
+      ↓
+Vendor Grouping
+      ↓
+Excel Export
+      ↓
+ZIP Packaging
+      ↓
+Mail Delivery
+      ↓
+Result
 프로젝트 구조
 app/
 
@@ -42,6 +65,11 @@ app/
 │   ├── settlement_missing_job.py
 │   └── tc_scan_job.py
 
+├── mail
+│   ├── mail_sender.py
+│   ├── mail_template.py
+│   └── test_mail.py
+
 ├── models
 │   └── job_result.py
 
@@ -60,8 +88,22 @@ app/
 
 ├── main.py
 │     Future FastAPI Entry Point
+설치
+pip install -r requirements.txt
+환경 설정
 
-실행하기.bat
+.env
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+
+TO_EMAIL=receiver@gmail.com
+
+Google 계정의 App Password를 사용해야 합니다.
+
 실행 방법
 기본 실행
 python -m app.runner
@@ -87,6 +129,32 @@ python -m app.runner --job tc_scan
 [INFO] ZIP FILE     : output/result.zip
 [INFO] SUCCESS      : True
 [INFO] MESSAGE      : 처리 완료
+메일 발송 예시
+
+제목
+
+[Automation Runtime] RepairPending 결과
+
+본문
+
+안녕하세요.
+
+RepairPending 작업이 완료되었습니다.
+
+전체 데이터 수 : 3549
+대상 건수 : 107
+업체 수 : 23
+생성 파일 수 : 23
+
+첨부파일 확인 부탁드립니다.
+
+감사합니다.
+
+※ 본 메일은 Automation Runtime에 의해 자동 발송되었습니다.
+
+첨부파일
+
+result.zip
 출력 파일
 output/
 
@@ -153,50 +221,60 @@ v0.2.8
 runner.py 분리
 CLI Entry Point 분리
 main.py FastAPI 전용 예약
-Web Runtime 전환 준비 완료
 v0.2.9
 Repair Pending Template Exporter 개선
 업체1/업체2 완료여부 분리 처리
 원전미입고 포맷 기반 업체별 파일 생성
 업체의뢰일 자동 매핑
 실운영 데이터 검증 완료
-
+v0.2.10
+Gmail SMTP 연동
+.env 지원
+SMTP 설정 분리
+SMTP 테스트 모듈 추가
+v0.2.11
+Mail Template 추가
+자동 메일 생성
+ZIP 첨부파일 전송
+결과 메일 자동 발송
+End-to-End 업무 자동화 완성
 향후 계획
 v0.3.0
 
+업무 자동화 확장
+
+Inbound Missing 구현
+Settlement Missing 구현
+TC Scan 구현
+v0.4.0
+
 FastAPI Web Runtime
 
-Job 선택 화면
+Job 선택
 Excel 업로드
 실행 결과 조회
 ZIP 다운로드
-기존 Job Registry 재사용
-기존 JobResult 재사용
-v0.4.0
-
-Job History 저장
-
-SQLite 또는 MariaDB
 v0.5.0
 
-Mail Sender
+Job History
 
-자동 메일 발송
-첨부파일 전송
+SQLite
+MariaDB
 v0.6.0
 
 Scheduler
 
 정기 실행
 배치 자동화
+Windows Task Scheduler 연동
 v0.7.0+
 
-업무 자동화 확장
+Notification 확장
 
-원전미입고
-정산누락
-TC 미스캔
-기타 운영 업무
+다중 수신자
+HTML Mail
+Teams 연동
+Slack 연동
 Runtime 철학
 
 업무별로 다른 엑셀 매크로를 만드는 것이 아니라
@@ -209,10 +287,8 @@ Grouping
       ↓
 Export
       ↓
+Delivery
+      ↓
 Result
 
 공통 Runtime 위에서 다양한 업무 자동화를 수행하는 플랫폼을 목표로 합니다.
-
-## 설치
-
-pip install -r requirements.txt
