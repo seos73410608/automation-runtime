@@ -1,7 +1,17 @@
 import os
 
+from dotenv import load_dotenv
 
-# 프로젝트 루트
+# ==========================================
+# ENV
+# ==========================================
+
+load_dotenv()
+
+# ==========================================
+# PROJECT PATH
+# ==========================================
+
 BASE_DIR = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
@@ -10,20 +20,31 @@ BASE_DIR = os.path.abspath(
     )
 )
 
-# 입출력 경로
-INPUT_DIR = os.path.join(BASE_DIR, "input")
+INPUT_DIR = os.path.join(
+    BASE_DIR,
+    "input"
+)
 
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
+OUTPUT_DIR = os.path.join(
+    BASE_DIR,
+    "output"
+)
 
 TEMP_DIR = os.path.join(
     OUTPUT_DIR,
     "temp"
 )
 
-# 결과 ZIP 파일명
+# ==========================================
+# RESULT FILE
+# ==========================================
+
 RESULT_ZIP_NAME = "result.zip"
 
-# Job 이름
+# ==========================================
+# JOB NAME
+# ==========================================
+
 JOB_REPAIR_PENDING = "RepairPending"
 
 JOB_INBOUND_MISSING = "InboundMissing"
@@ -31,3 +52,22 @@ JOB_INBOUND_MISSING = "InboundMissing"
 JOB_SETTLEMENT_MISSING = "SettlementMissing"
 
 JOB_TC_SCAN = "TcScan"
+
+# ==========================================
+# MAIL
+# ==========================================
+
+SMTP_HOST = os.getenv("SMTP_HOST")
+
+SMTP_PORT = int(
+    os.getenv(
+        "SMTP_PORT",
+        "587"
+    )
+)
+
+SMTP_USER = os.getenv("SMTP_USER")
+
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
+TO_EMAIL = os.getenv("TO_EMAIL")
