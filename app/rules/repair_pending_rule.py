@@ -69,12 +69,12 @@ def filter_pending(df):
 
     filtered = df[
         (
-            (v1.notna()) & 
+            (v1.notna()) &
             (d1.isna())
         )
-        | 
+        |
         (
-            (v2.notna()) & 
+            (v2.notna()) &
             (d2.isna())
         )
     ]
@@ -98,34 +98,67 @@ def group_by_vendor(df):
         ["수선업체2", "업체2", "vendor2"]
     )
 
+    col_done1 = find_col(
+        df,
+        ["업체완료일1", "완료일1", "done1"]
+    )
+
+    col_done2 = find_col(
+        df,
+        ["업체완료일2", "완료일2", "done2"]
+    )
+
     groups = {}
 
     for _, row in df.iterrows():
 
-        vendors = []
-
+        # 업체1 미완료 건
         if (
-            col_vendor1 and
-            pd.notna(row.get(col_vendor1))
+            col_vendor1
+            and pd.notna(row.get(col_vendor1))
+            and pd.isna(row.get(col_done1))
         ):
-            vendors.append(
-                str(row[col_vendor1]).strip()
-            )
 
-        if (
-            col_vendor2 and
-            pd.notna(row.get(col_vendor2))
-        ):
-            vendors.append(
-                str(row[col_vendor2]).strip()
-            )
-
-        for vendor in vendors:
+            vendor = str(
+                row[col_vendor1]
+            ).strip()
 
             if vendor not in groups:
                 groups[vendor] = []
 
-            groups[vendor].append(row)
+            export_row = row.copy()
+
+            # Exporter에서 사용
+            export_row["_target_vendor"] = vendor
+            export_row["_target_vendor_no"] = 1
+
+            groups[vendor].append(
+                export_row
+            )
+
+        # 업체2 미완료 건
+        if (
+            col_vendor2
+            and pd.notna(row.get(col_vendor2))
+            and pd.isna(row.get(col_done2))
+        ):
+
+            vendor = str(
+                row[col_vendor2]
+            ).strip()
+
+            if vendor not in groups:
+                groups[vendor] = []
+
+            export_row = row.copy()
+
+            # Exporter에서 사용
+            export_row["_target_vendor"] = vendor
+            export_row["_target_vendor_no"] = 2
+
+            groups[vendor].append(
+                export_row
+            )
 
     logger.info(
         f"업체 수: {len(groups)}"
