@@ -15,7 +15,10 @@ from app.utils.logger import logger
 
 from app.models.job_result import JobResult
 
-from app.config.settings import JOB_REPAIR_PENDING
+from app.config.settings import (
+    JOB_REPAIR_PENDING,
+    TO_EMAIL
+)
 
 from app.mail.mail_sender import send_mail
 
@@ -149,25 +152,38 @@ class RepairPendingJob(BaseJob):
             )
 
             # MAIL
-            send_mail(
-                subject=subject,
-                body=body,
-                attachment_path=zip_path
-            )
+            try:
 
-            repo.insert_history(
-                AutomationJobHistory(
-                    job_id=job_id,
-                    step_name=STEP_MAIL,
-                    status=STATUS_SUCCESS,
-                    message="mail sent"
+                send_mail(
+                    subject=subject,
+                    body=body,
+                    attachment_path=zip_path
                 )
-            )
+
+                repo.insert_history(
+                    AutomationJobHistory(
+                        job_id=job_id,
+                        step_name=STEP_MAIL,
+                        status=STATUS_SUCCESS,
+                        message=f"mail sent to {TO_EMAIL}"
+                    )
+                )
+
+            except Exception as mail_error:
+
+                repo.insert_history(
+                    AutomationJobHistory(
+                        job_id=job_id,
+                        step_name=STEP_MAIL,
+                        status=STATUS_FAILED,
+                        message=str(mail_error)
+                    )
+                )
+
+                raise
 
             job.total_rows = len(df)
-
             job.vendor_count = len(groups)
-
             job.status = STATUS_SUCCESS
 
             db.commit()
@@ -185,7 +201,7 @@ class RepairPendingJob(BaseJob):
 
         except Exception as e:
 
-            logger.error(str(e))
+            logger.exception(e)
 
             try:
 

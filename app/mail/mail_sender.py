@@ -72,15 +72,13 @@ def send_mail(
             server.send_message(msg)
 
         logger.info(
-            "메일 발송 완료"
+            f"메일 발송 완료 : {TO_EMAIL}"
         )
 
-        return True
-
-    except Exception as e:
+    except Exception:
 
         logger.exception(
-            f"메일 발송 실패 : {e}"
+            "메일 발송 실패"
         )
 
-        return False
+        raise
