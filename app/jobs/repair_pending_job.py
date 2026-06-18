@@ -30,6 +30,12 @@ from app.db.models import AutomationJob
 
 from app.db.repository import AutomationRepository
 
+from app.constants.job_status import (
+    STATUS_RUNNING,
+    STATUS_SUCCESS,
+    STATUS_FAILED
+)
+
 
 class RepairPendingJob(BaseJob):
 
@@ -51,7 +57,7 @@ class RepairPendingJob(BaseJob):
             job = AutomationJob(
                 job_id=job_id,
                 file_name=file_name,
-                status="RUNNING",
+                status=STATUS_RUNNING,
                 total_rows=0,
                 vendor_count=0
             )
@@ -90,7 +96,7 @@ class RepairPendingJob(BaseJob):
 
             job.vendor_count = len(groups)
 
-            job.status = "SUCCESS"
+            job.status = STATUS_SUCCESS
 
             db.commit()
 
@@ -113,7 +119,7 @@ class RepairPendingJob(BaseJob):
 
                 repo.update_job_status(
                     job_id,
-                    "FAILED"
+                    STATUS_FAILED
                 )
 
             except Exception:
