@@ -26,7 +26,10 @@ from app.mail.mail_template import (
 
 from app.db.database import SessionLocal
 
-from app.db.models import AutomationJob
+from app.db.models import (
+    AutomationJob,
+    AutomationJobHistory
+)
 
 from app.db.repository import AutomationRepository
 
@@ -34,6 +37,15 @@ from app.constants.job_status import (
     STATUS_RUNNING,
     STATUS_SUCCESS,
     STATUS_FAILED
+)
+
+from app.constants.job_step import (
+    STEP_READ_EXCEL,
+    STEP_FILTER,
+    STEP_GROUP,
+    STEP_EXPORT,
+    STEP_ZIP,
+    STEP_MAIL
 )
 
 
@@ -64,15 +76,65 @@ class RepairPendingJob(BaseJob):
 
             repo.create_job(job)
 
+            # READ_EXCEL
             df = read_excel()
 
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_READ_EXCEL,
+                    status=STATUS_SUCCESS,
+                    message=f"{len(df)} rows loaded"
+                )
+            )
+
+            # FILTER
             filtered = filter_pending(df)
 
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_FILTER,
+                    status=STATUS_SUCCESS,
+                    message=f"{len(filtered)} rows matched"
+                )
+            )
+
+            # GROUP
             groups = group_by_vendor(filtered)
 
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_GROUP,
+                    status=STATUS_SUCCESS,
+                    message=f"{len(groups)} vendors grouped"
+                )
+            )
+
+            # EXPORT
             files = export_excel(groups)
 
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_EXPORT,
+                    status=STATUS_SUCCESS,
+                    message=f"{len(files)} files created"
+                )
+            )
+
+            # ZIP
             zip_path = create_zip(files)
+
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_ZIP,
+                    status=STATUS_SUCCESS,
+                    message=zip_path
+                )
+            )
 
             subject = build_subject(
                 JOB_REPAIR_PENDING
@@ -86,10 +148,20 @@ class RepairPendingJob(BaseJob):
                 file_count=len(files)
             )
 
+            # MAIL
             send_mail(
                 subject=subject,
                 body=body,
                 attachment_path=zip_path
+            )
+
+            repo.insert_history(
+                AutomationJobHistory(
+                    job_id=job_id,
+                    step_name=STEP_MAIL,
+                    status=STATUS_SUCCESS,
+                    message="mail sent"
+                )
             )
 
             job.total_rows = len(df)
@@ -120,6 +192,15 @@ class RepairPendingJob(BaseJob):
                 repo.update_job_status(
                     job_id,
                     STATUS_FAILED
+                )
+
+                repo.insert_history(
+                    AutomationJobHistory(
+                        job_id=job_id,
+                        step_name="ERROR",
+                        status=STATUS_FAILED,
+                        message=str(e)
+                    )
                 )
 
             except Exception:
