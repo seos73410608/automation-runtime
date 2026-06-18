@@ -95,7 +95,9 @@ async def run_job(
 
 
 @app.get("/history")
-def history():
+def history(
+    request: Request
+):
 
     db = SessionLocal()
 
@@ -121,7 +123,13 @@ def history():
                 }
             )
 
-        return result
+        return templates.TemplateResponse(
+            request=request,
+            name="history.html",
+            context={
+                "jobs": jobs
+            }
+        )
 
     finally:
 
