@@ -68,6 +68,18 @@ class AutomationRepository:
 
         return history
 
+    def get_jobs(self):
+
+        return (
+            self.db.query(
+                AutomationJob
+            )
+            .order_by(
+                AutomationJob.created_at.desc()
+            )
+            .all()
+        )
+
     def find_job(
         self,
         job_id: str

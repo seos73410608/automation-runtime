@@ -10,6 +10,9 @@ from fastapi.templating import Jinja2Templates
 
 from app.jobs.repair_pending_job import RepairPendingJob
 
+from app.db.database import SessionLocal
+from app.db.repository import AutomationRepository
+
 app = FastAPI(
     title="Automation Runtime",
     version="0.5.0"
@@ -89,6 +92,40 @@ async def run_job(
             }
         }
     )
+
+
+@app.get("/history")
+def history():
+
+    db = SessionLocal()
+
+    try:
+
+        repo = AutomationRepository(db)
+
+        jobs = repo.get_jobs()
+
+        result = []
+
+        for job in jobs:
+
+            result.append(
+                {
+                    "job_id": job.job_id,
+                    "file_name": job.file_name,
+                    "status": job.status,
+                    "total_rows": job.total_rows,
+                    "vendor_count": job.vendor_count,
+                    "created_at": str(job.created_at),
+                    "updated_at": str(job.updated_at)
+                }
+            )
+
+        return result
+
+    finally:
+
+        db.close()
 
 
 @app.get("/download")
