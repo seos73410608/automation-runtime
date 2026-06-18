@@ -12,7 +12,7 @@ from app.jobs.repair_pending_job import RepairPendingJob
 
 app = FastAPI(
     title="Automation Runtime",
-    version="0.4.0"
+    version="0.5.0"
 )
 
 templates = Jinja2Templates(
@@ -34,7 +34,7 @@ def home(request: Request):
 async def run_job(
     request: Request,
     file: UploadFile,
-    job: str=Form(...)
+    job: str = Form(...)
 ):
 
     input_dir = Path("input")
@@ -65,7 +65,9 @@ async def run_job(
 
         result = (
             RepairPendingJob()
-            .execute()
+            .execute(
+                file_name=file.filename
+            )
         )
 
         return templates.TemplateResponse(

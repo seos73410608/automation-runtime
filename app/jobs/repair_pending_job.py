@@ -1,3 +1,5 @@
+import uuid
+
 from app.jobs.base_job import BaseJob
 
 from app.excel.excel_reader import read_excel
@@ -22,12 +24,39 @@ from app.mail.mail_template import (
     build_body
 )
 
+from app.db.database import SessionLocal
+
+from app.db.models import AutomationJob
+
+from app.db.repository import AutomationRepository
+
 
 class RepairPendingJob(BaseJob):
 
-    def execute(self):
+    def execute(
+        self,
+        file_name: str
+    ):
+
+        db = SessionLocal()
+
+        repo = AutomationRepository(db)
+
+        job_id = str(
+            uuid.uuid4()
+        )
 
         try:
+
+            job = AutomationJob(
+                job_id=job_id,
+                file_name=file_name,
+                status="RUNNING",
+                total_rows=0,
+                vendor_count=0
+            )
+
+            repo.create_job(job)
 
             df = read_excel()
 
@@ -39,7 +68,6 @@ class RepairPendingJob(BaseJob):
 
             zip_path = create_zip(files)
 
-            
             subject = build_subject(
                 JOB_REPAIR_PENDING
             )
@@ -58,6 +86,14 @@ class RepairPendingJob(BaseJob):
                 attachment_path=zip_path
             )
 
+            job.total_rows = len(df)
+
+            job.vendor_count = len(groups)
+
+            job.status = "SUCCESS"
+
+            db.commit()
+
             return JobResult(
                 job_name=JOB_REPAIR_PENDING,
                 total_rows=len(df),
@@ -73,6 +109,16 @@ class RepairPendingJob(BaseJob):
 
             logger.error(str(e))
 
+            try:
+
+                repo.update_job_status(
+                    job_id,
+                    "FAILED"
+                )
+
+            except Exception:
+                pass
+
             return JobResult(
                 job_name=JOB_REPAIR_PENDING,
                 total_rows=0,
@@ -83,3 +129,7 @@ class RepairPendingJob(BaseJob):
                 success=False,
                 message=str(e)
             )
+
+        finally:
+
+            db.close()
