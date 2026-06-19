@@ -1,3 +1,8 @@
+import uuid
+
+from pathlib import Path
+from datetime import datetime
+
 from app.db.models import (
     ScheduleExecution
 )
@@ -12,6 +17,10 @@ from apscheduler.triggers.cron import (
 
 from app.db.database import SessionLocal
 from app.db.repository import AutomationRepository
+
+from app.jobs.job_registry import (
+    JOB_REGISTRY
+)
 
 
 class SchedulerManager:
@@ -108,7 +117,8 @@ class SchedulerManager:
                 repo.create_schedule_execution(
                     ScheduleExecution(
                         schedule_id=schedule_id,
-                        status="RUNNING"
+                        status="RUNNING",
+                        started_at=datetime.now()
                     )
                 )
             )
@@ -120,23 +130,81 @@ class SchedulerManager:
                     f"{schedule.job_name}"
                 )
 
-                # TODO
-                # 실제 Job 실행 연결
-                #
-                # if schedule.job_name == "repair_pending":
-                #     RepairPendingJob().execute(...)
+                job_class = (
+                    JOB_REGISTRY.get(
+                        schedule.job_name
+                    )
+                )
 
-                repo.update_schedule_execution(
-                    execution.execution_id,
-                    "SUCCESS"
+                if not job_class:
+
+                    raise Exception(
+                        f"Unknown Job : "
+                        f"{schedule.job_name}"
+                    )
+
+                if not Path(
+                    schedule.input_file_path
+                ).exists():
+
+                    raise FileNotFoundError(
+                        f"Input file not found : "
+                        f"{schedule.input_file_path}"
+                    )
+
+                job_id = str(
+                    uuid.uuid4()
+                )
+
+                job_instance = (
+                    job_class()
+                )
+
+                result = (
+                    job_instance.execute(
+                        job_id=job_id,
+                        file_name=Path(
+                            schedule.input_file_path
+                        ).name,
+                        file_path=(
+                            schedule.input_file_path
+                        )
+                    )
+                )
+
+                execution.job_id = job_id
+                execution.status = "SUCCESS"
+                execution.finished_at = (
+                    datetime.now()
+                )
+
+                if hasattr(
+                    result,
+                    "message"
+                ):
+                    execution.message = (
+                        result.message
+                    )
+
+                db.commit()
+
+                print(
+                    f"[INFO] Schedule Success : "
+                    f"{schedule.schedule_name}"
                 )
 
             except Exception as e:
 
-                repo.update_schedule_execution(
-                    execution.execution_id,
-                    "FAILED",
-                    str(e)
+                execution.status = "FAILED"
+                execution.finished_at = (
+                    datetime.now()
+                )
+                execution.message = str(e)
+
+                db.commit()
+
+                print(
+                    f"[ERROR] {e}"
                 )
 
         finally:

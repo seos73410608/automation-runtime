@@ -100,7 +100,7 @@ class AutomationJobHistory(Base):
 
 
 class AutomationSchedule(Base):
-
+    
     __tablename__ = "tb_automation_schedule"
 
     schedule_id = Column(
@@ -122,6 +122,11 @@ class AutomationSchedule(Base):
     cron_expression = Column(
         String(100),
         nullable=False
+    )
+
+    input_file_path = Column(
+        String(500),
+        nullable=True
     )
 
     enabled = Column(
