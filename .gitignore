@@ -26,7 +26,12 @@ venv/
 # ==========================================
 
 input/
-output/
+
+output/*
+!output/.gitkeep
+
+uploads/*
+!uploads/.gitkeep
 
 # ==========================================
 # Environment Variables
