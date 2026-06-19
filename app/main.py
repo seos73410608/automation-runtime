@@ -16,14 +16,32 @@ from app.jobs.repair_pending_job import RepairPendingJob
 from app.db.database import SessionLocal
 from app.db.repository import AutomationRepository
 
+from app.scheduler.scheduler_manager import (
+    SchedulerManager
+)
+
 app = FastAPI(
     title="Automation Runtime",
-    version="0.5.3"
+    version="0.6.0"
 )
 
 templates = Jinja2Templates(
     directory="app/templates"
 )
+
+scheduler_manager = SchedulerManager()
+
+
+@app.on_event("startup")
+def startup():
+
+    scheduler_manager.start()
+
+
+@app.on_event("shutdown")
+def shutdown():
+
+    scheduler_manager.shutdown()
 
 
 @app.get("/")
@@ -40,7 +58,7 @@ def home(request: Request):
 async def run_job(
     request: Request,
     file: UploadFile,
-    job: str = Form(...)
+    job: str=Form(...)
 ):
 
     job_id = str(
