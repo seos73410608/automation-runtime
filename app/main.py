@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 import uuid
+import glob
 
 from fastapi import FastAPI
 from fastapi import Request
@@ -17,7 +18,7 @@ from app.db.repository import AutomationRepository
 
 app = FastAPI(
     title="Automation Runtime",
-    version="0.5.0"
+    version="0.5.3"
 )
 
 templates = Jinja2Templates(
@@ -159,19 +160,23 @@ def job_detail(
         db.close()
 
 
-@app.get("/download")
-def download():
+@app.get("/download/{job_id}")
+def download(
+    job_id: str
+):
 
-    zip_path = Path(
-        "output/result.zip"
+    matches = glob.glob(
+        f"output/*/{job_id}/result.zip"
     )
 
-    if not zip_path.exists():
+    if not matches:
 
         return {
             "success": False,
             "message": "ZIP 파일이 존재하지 않습니다."
         }
+
+    zip_path = matches[0]
 
     return FileResponse(
         path=zip_path,

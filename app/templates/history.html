@@ -58,10 +58,12 @@
                     <tr>
 
                         <th>실행일시</th>
+                        <th>Job ID</th>
                         <th>파일명</th>
                         <th>상태</th>
                         <th>총 건수</th>
                         <th>업체수</th>
+                        <th>다운로드</th>
                         <th>상세</th>
 
                     </tr>
@@ -76,6 +78,12 @@
 
                         <td>
                             {{ job.created_at }}
+                        </td>
+
+                        <td>
+                            <small>
+                                {{ job.job_id }}
+                            </small>
                         </td>
 
                         <td>
@@ -112,6 +120,27 @@
 
                         <td>
                             {{ job.vendor_count }}
+                        </td>
+
+                        <td>
+
+                            {% if job.status == "SUCCESS" %}
+
+                            <a
+                                href="/download/{{ job.job_id }}"
+                                class="btn btn-sm btn-success"
+                            >
+                                ZIP
+                            </a>
+
+                            {% else %}
+
+                            <span class="text-muted">
+                                -
+                            </span>
+
+                            {% endif %}
+
                         </td>
 
                         <td>

@@ -102,6 +102,30 @@
                     <td>{{ job.updated_at }}</td>
                 </tr>
 
+                <tr>
+                    <th>결과 파일</th>
+                    <td>
+
+                        {% if job.status == "SUCCESS" %}
+
+                        <a
+                            href="/download/{{ job.job_id }}"
+                            class="btn btn-success btn-sm"
+                        >
+                            결과 ZIP 다운로드
+                        </a>
+
+                        {% else %}
+
+                        <span class="text-muted">
+                            다운로드 불가
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+                </tr>
+
                 </tbody>
 
             </table>
