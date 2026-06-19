@@ -30,9 +30,9 @@ OUTPUT_DIR = os.path.join(
     "output"
 )
 
-TEMP_DIR = os.path.join(
-    OUTPUT_DIR,
-    "temp"
+UPLOAD_DIR = os.path.join(
+    BASE_DIR,
+    "uploads"
 )
 
 # ==========================================

@@ -2,19 +2,24 @@ import os
 import zipfile
 
 from app.config.settings import (
-    OUTPUT_DIR,
     RESULT_ZIP_NAME
 )
 
 from app.utils.logger import logger
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+def create_zip(
+    files,
+    output_dir: str
+):
 
-def create_zip(files):
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
 
     zip_path = os.path.join(
-        OUTPUT_DIR,
+        output_dir,
         RESULT_ZIP_NAME
     )
 

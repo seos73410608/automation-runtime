@@ -1,3 +1,6 @@
+from pathlib import Path
+from datetime import datetime
+
 from app.jobs.base_job import BaseJob
 
 from app.excel.excel_reader import read_excel
@@ -15,7 +18,8 @@ from app.models.job_result import JobResult
 
 from app.config.settings import (
     JOB_REPAIR_PENDING,
-    TO_EMAIL
+    TO_EMAIL,
+    OUTPUT_DIR
 )
 
 from app.mail.mail_sender import send_mail
@@ -111,8 +115,23 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
+            # EXPORT 대상 디렉토리
+            output_dir = (
+                Path(OUTPUT_DIR)
+                / datetime.now().strftime("%Y%m%d")
+                / job_id
+            )
+
+            excel_output_dir = (
+                output_dir
+                / "excel"
+            )
+
             # EXPORT
-            files = export_excel(groups)
+            files = export_excel(
+                groups,
+                str(excel_output_dir)
+            )
 
             repo.insert_history(
                 AutomationJobHistory(
@@ -124,7 +143,10 @@ class RepairPendingJob(BaseJob):
             )
 
             # ZIP
-            zip_path = create_zip(files)
+            zip_path = create_zip(
+                files,
+                str(output_dir)
+            )
 
             repo.insert_history(
                 AutomationJobHistory(

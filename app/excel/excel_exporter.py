@@ -1,23 +1,7 @@
 import pandas as pd
 import os
 
-from app.config.settings import (
-    OUTPUT_DIR,
-    TEMP_DIR
-)
-
 from app.utils.logger import logger
-
-# 초기 생성
-os.makedirs(
-    OUTPUT_DIR,
-    exist_ok=True
-)
-
-os.makedirs(
-    TEMP_DIR,
-    exist_ok=True
-)
 
 EXPORT_COLUMNS = [
     "현재수선현황",
@@ -38,11 +22,13 @@ EXPORT_COLUMNS = [
 ]
 
 
-def export_excel(groups):
+def export_excel(
+    groups,
+    output_dir: str
+):
 
-    # 실행 시점에도 생성 보장
     os.makedirs(
-        TEMP_DIR,
+        output_dir,
         exist_ok=True
     )
 
@@ -56,7 +42,7 @@ def export_excel(groups):
         )
 
         file_path = os.path.join(
-            TEMP_DIR,
+            output_dir,
             f"{safe_vendor}.xlsx"
         )
 
