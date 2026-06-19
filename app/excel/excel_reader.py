@@ -1,29 +1,9 @@
 import pandas as pd
-import glob
 
-from app.config.settings import INPUT_DIR
 from app.utils.logger import logger
 
 
-def get_input_file():
-
-    files = glob.glob(f"{INPUT_DIR}/*.xls*")
-
-    if not files:
-        raise Exception(
-            "input 폴더에 엑셀 파일이 없습니다."
-        )
-
-    logger.info(
-        f"사용 파일: {files[0]}"
-    )
-
-    return files[0]
-
-
-def read_excel():
-
-    file_path = get_input_file()
+def read_excel(file_path: str):
 
     ext = file_path.split(".")[-1].lower()
 
@@ -31,6 +11,7 @@ def read_excel():
 
         # XLS (구버전)
         if ext == "xls":
+
             df = pd.read_excel(
                 file_path,
                 engine="xlrd",
@@ -39,6 +20,7 @@ def read_excel():
 
         # XLSX (신버전)
         else:
+
             df = pd.read_excel(
                 file_path,
                 engine="openpyxl",

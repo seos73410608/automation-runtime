@@ -1,5 +1,3 @@
-import uuid
-
 from app.jobs.base_job import BaseJob
 
 from app.excel.excel_reader import read_excel
@@ -56,16 +54,14 @@ class RepairPendingJob(BaseJob):
 
     def execute(
         self,
-        file_name: str
+        job_id: str,
+        file_name: str,
+        file_path: str
     ):
 
         db = SessionLocal()
 
         repo = AutomationRepository(db)
-
-        job_id = str(
-            uuid.uuid4()
-        )
 
         try:
 
@@ -80,7 +76,7 @@ class RepairPendingJob(BaseJob):
             repo.create_job(job)
 
             # READ_EXCEL
-            df = read_excel()
+            df = read_excel(file_path)
 
             repo.insert_history(
                 AutomationJobHistory(
@@ -151,7 +147,6 @@ class RepairPendingJob(BaseJob):
                 file_count=len(files)
             )
 
-            # MAIL
             try:
 
                 send_mail(

@@ -1,4 +1,6 @@
 from pathlib import Path
+from datetime import datetime
+import uuid
 
 from fastapi import FastAPI
 from fastapi import Request
@@ -14,13 +16,14 @@ from app.db.database import SessionLocal
 from app.db.repository import AutomationRepository
 
 app = FastAPI(
-title="Automation Runtime",
-version="0.5.0"
+    title="Automation Runtime",
+    version="0.5.0"
 )
 
 templates = Jinja2Templates(
-directory="app/templates"
+    directory="app/templates"
 )
+
 
 @app.get("/")
 def home(request: Request):
@@ -31,26 +34,33 @@ def home(request: Request):
         context={}
     )
 
+
 @app.post("/run")
 async def run_job(
-request: Request,
-file: UploadFile,
-job: str = Form(...)
+    request: Request,
+    file: UploadFile,
+    job: str = Form(...)
 ):
 
-    input_dir = Path("input")
+    job_id = str(
+        uuid.uuid4()
+    )
 
-    input_dir.mkdir(
+    upload_dir = (
+        Path("uploads")
+        / datetime.now().strftime("%Y%m%d")
+        / job_id
+    )
+
+    upload_dir.mkdir(
+        parents=True,
         exist_ok=True
     )
 
-    for old_file in input_dir.glob("*"):
-
-        if old_file.is_file():
-
-            old_file.unlink()
-
-    save_path = input_dir / file.filename
+    save_path = (
+        upload_dir
+        / file.filename
+    )
 
     with open(
         save_path,
@@ -66,7 +76,9 @@ job: str = Form(...)
         result = (
             RepairPendingJob()
             .execute(
-                file_name=file.filename
+                job_id=job_id,
+                file_name=file.filename,
+                file_path=str(save_path)
             )
         )
 
@@ -90,9 +102,10 @@ job: str = Form(...)
         }
     )
 
+
 @app.get("/history")
 def history(
-request: Request
+    request: Request
 ):
 
     db = SessionLocal()
@@ -114,6 +127,7 @@ request: Request
     finally:
 
         db.close()
+
 
 @app.get("/job/{job_id}")
 def job_detail(
@@ -143,6 +157,7 @@ def job_detail(
     finally:
 
         db.close()
+
 
 @app.get("/download")
 def download():
