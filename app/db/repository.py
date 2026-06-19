@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 
 from app.db.models import (
     AutomationJob,
-    AutomationJobHistory
+    AutomationJobHistory,
+    AutomationSchedule,
+    ScheduleExecution
 )
 
 
@@ -109,6 +111,130 @@ class AutomationRepository:
             )
             .order_by(
                 AutomationJobHistory.created_at
+            )
+            .all()
+        )
+
+    # =========================
+    # Scheduler
+    # =========================
+
+    def create_schedule(
+        self,
+        schedule: AutomationSchedule
+    ):
+
+        self.db.add(schedule)
+
+        self.db.commit()
+
+        self.db.refresh(schedule)
+
+        return schedule
+
+    def get_schedules(self):
+
+        return (
+            self.db.query(
+                AutomationSchedule
+            )
+            .order_by(
+                AutomationSchedule.schedule_id.desc()
+            )
+            .all()
+        )
+
+    def get_enabled_schedules(
+        self
+    ):
+
+        return (
+            self.db.query(
+                AutomationSchedule
+            )
+            .filter(
+                AutomationSchedule.enabled == "Y"
+            )
+            .all()
+        )
+
+    def find_schedule(
+        self,
+        schedule_id: int
+    ):
+
+        return (
+            self.db.query(
+                AutomationSchedule
+            )
+            .filter(
+                AutomationSchedule.schedule_id
+                == schedule_id
+            )
+            .first()
+        )
+
+    def create_schedule_execution(
+        self,
+        execution: ScheduleExecution
+    ):
+
+        self.db.add(execution)
+
+        self.db.commit()
+
+        self.db.refresh(execution)
+
+        return execution
+
+    def update_schedule_execution(
+        self,
+        execution_id: int,
+        status: str,
+        message: str = None
+    ):
+
+        execution = (
+            self.db.query(
+                ScheduleExecution
+            )
+            .filter(
+                ScheduleExecution.execution_id
+                == execution_id
+            )
+            .first()
+        )
+
+        if not execution:
+
+            return None
+
+        execution.status = status
+
+        if message:
+            execution.message = message
+
+        self.db.commit()
+
+        self.db.refresh(execution)
+
+        return execution
+
+    def get_schedule_executions(
+        self,
+        schedule_id: int
+    ):
+
+        return (
+            self.db.query(
+                ScheduleExecution
+            )
+            .filter(
+                ScheduleExecution.schedule_id
+                == schedule_id
+            )
+            .order_by(
+                ScheduleExecution.created_at.desc()
             )
             .all()
         )
