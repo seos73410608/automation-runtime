@@ -6,8 +6,8 @@ from app.jobs.base_job import BaseJob
 from app.excel.excel_reader import read_excel
 from app.excel.excel_exporter import export_excel
 
+from app.services.rule_service import RuleService
 from app.rules.repair_pending_rule import (
-    filter_pending,
     group_by_vendor
 )
 
@@ -92,7 +92,16 @@ class RepairPendingJob(BaseJob):
             )
 
             # FILTER
-            filtered = filter_pending(df)
+
+
+            rule_service = RuleService(db)
+
+            mask = rule_service.execute(
+                JOB_REPAIR_PENDING,
+                df
+            )
+
+            filtered = df[mask]
 
             repo.insert_history(
                 AutomationJobHistory(
