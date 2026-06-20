@@ -1,257 +1,284 @@
-JOB_CATALOG.md
+📘 JOB_CATALOG.md (Final - Runtime Productization 반영)
 Automation Runtime Job Catalog
-Overview
+📌 Overview
 
-Automation Runtime은 다양한 업무 자동화를 공통 Runtime 위에서 수행하기 위한 플랫폼이다.
+Automation Runtime의 모든 Job은
+Configuration 기반 Execution Contract이다.
 
-각 업무는 Job 단위로 정의되며,
-
-모든 Job은 다음 흐름을 따른다.
+각 Job은 Runtime Core 위에서 동일한 Lifecycle을 따른다.
 
 Input
-↓
+ ↓
 Rule Engine
-↓
-Processing
-↓
-Delivery
-↓
-History
+ ↓
+Processing Engine
+ ↓
+Export Engine
+ ↓
+Delivery Engine
+ ↓
+History Engine
+🧠 Core Principle
 
-Category 1. Missing Detection
-RepairPending
-설명
+❗ Job은 코드가 아니라 “Runtime Execution Contract”이다
 
-수선업체 의뢰 후 완료되지 않은 건 탐지
+Job = Input + Rule + Processing + Output + Delivery + History
+🧩 Category 1. Missing Detection
+🧾 RepairPending (REFERENCE JOB - PRODUCTION)
+📌 설명
 
-입력
+수선업체 의뢰 후 미완료 건 탐지 (Reference Job)
+
+📥 입력
 AS 접수현황 Excel
-출력
+📤 출력
 업체별 Excel
-ZIP
-Mail
-Required Engine
+ZIP File
+Mail Delivery
+⚙️ Required Engines
 Filter Engine
 Group Engine
 Export Engine
-Mail Engine
-Status
+Delivery Engine
+History Engine
+📊 Status
+Implemented (Reference Job - Production Baseline)
+🧾 InboundMissing
+📌 설명
 
-Implemented
+입고 예정 대비 미입고 데이터 탐지
 
-InboundMissing
-설명
-
-입고 예정이나 입고되지 않은 건 탐지
-
-입력
+📥 입력
 입고 현황 Excel
-출력
+📤 출력
 누락 리스트 Excel
-Required Engine
+⚙️ Required Engines
 Filter Engine
 Export Engine
-Status
+History Engine
+📊 Status
 
 Planned
 
-SettlementMissing
-설명
+🧾 SettlementMissing
+📌 설명
 
-정산 대상이나 정산되지 않은 건 탐지
+정산 대상 대비 미정산 데이터 탐지
 
-입력
+📥 입력
 정산 데이터
-출력
+📤 출력
 정산 누락 리스트
-Required Engine
+⚙️ Required Engines
 Filter Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-Category 2. Aging Analysis
-AgingRepair
-설명
+🧩 Category 2. Aging Analysis
+🧾 AgingRepair
+📌 설명
 
-30일 이상 미처리 수선 건 탐지
+30일 이상 미처리 수선 건 분석
 
-입력
+📥 입력
 AS 접수현황
-출력
-장기 미처리 리스트
-Required Engine
+⚙️ Engines
 Filter Engine
 Date Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-AgingInbound
-설명
+🧾 AgingInbound
 
-입고 지연 건 탐지
+입고 지연 분석 Job
 
-입력
+📥 입력
 입고 데이터
-출력
-입고 지연 리스트
-Required Engine
+⚙️ Engines
 Filter Engine
 Date Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-Category 3. Validation
-TcScanMissing
-설명
+🧩 Category 3. Validation
+🧾 TcScanMissing
+📌 설명
 
-TC 스캔 누락 건 탐지
+TC 스캔 누락 검증
 
-입력
-TC 스캔 데이터
-출력
-미스캔 리스트
-Required Engine
+📥 입력
+TC Scan Data
+⚙️ Engines
 Validation Engine
+Filter Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-DeliveryMismatch
-설명
+🧾 DeliveryMismatch
+📌 설명
 
-출고 데이터와 배송 데이터 불일치 탐지
+출고 vs 배송 데이터 불일치 검증
 
-입력
+📥 입력
 출고 데이터
 배송 데이터
-출력
-불일치 리스트
-Required Engine
+⚙️ Engines
 Join Engine
 Compare Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-Category 4. Inventory
-InventoryMismatch
-설명
+🧩 Category 4. Inventory
+🧾 InventoryMismatch
+📌 설명
 
-재고 수량 불일치 탐지
+ERP vs WMS 재고 불일치 검증
 
-입력
-WMS 재고
+📥 입력
 ERP 재고
-출력
-재고 차이 리스트
-Required Engine
+WMS 재고
+⚙️ Engines
 Compare Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-Category 5. Reporting
-VendorSummary
-설명
+🧩 Category 5. Reporting
+🧾 VendorSummary
+📌 설명
 
 업체별 처리 현황 집계
 
-입력
-처리 결과 데이터
-출력
-업체별 집계 보고서
-Required Engine
+📥 입력
+Execution Result Data
+⚙️ Engines
 Aggregation Engine
 Export Engine
-Status
+📊 Status
 
 Planned
 
-DailySummary
-설명
+🧾 DailySummary
+📌 설명
 
-일일 업무 현황 집계
+일일 운영 리포트 생성
 
-입력
-Runtime 실행 데이터
-출력
-Daily Report
-Required Engine
+📥 입력
+Runtime Execution Logs
+⚙️ Engines
 Aggregation Engine
 Dashboard Engine
-Status
+📊 Status
 
 Planned
 
-Engine Catalog
-Filter Engine
-
-조건 기반 데이터 필터링
-
-예시
-
+⚙️ Engine Catalog (Aligned with Architecture)
+1. Filter Engine
 IS_EMPTY
 EQUALS
 NOT_EQUALS
 CONTAINS
-Date Engine
-
-날짜 계산
-
-예시
-
+STARTS_WITH
+ENDS_WITH
+2. Date Engine
 OLDER_THAN_DAYS
 BEFORE_DATE
 AFTER_DATE
-Group Engine
-
-데이터 그룹핑
-
-예시
-
+3. Group Engine
 업체별 그룹
 매장별 그룹
-Compare Engine
-
-두 데이터셋 비교
-
-예시
-
-재고 비교
-주문 비교
-Join Engine
-
-다중 데이터셋 조인
-
-예시
-
-출고 + 배송
-ERP + WMS
-Aggregation Engine
-
-집계
-
-예시
-
+Job Key 기반 그룹핑
+4. Compare Engine
+ERP vs WMS
+주문 vs 배송
+Snapshot 비교
+5. Join Engine
+Multi Dataset Merge
+Inner / Left Join
+6. Aggregation Engine
 COUNT
 SUM
 AVG
+7. Validation Engine
+Format Check
+Null Check
+Business Rule Validation
+8. Delivery Engine
+Excel Export
+CSV Export
+ZIP Packaging
+Mail Delivery
+Dashboard Publishing (Future)
+🔁 Execution Contract Model (IMPORTANT)
+Job Execution Contract = {
+  input_source,
+  rule_config,
+  processing_config,
+  export_config,
+  delivery_config,
+  schedule_config
+}
+
+👉 Job = Execution Contract (NOT code)
+
+🧠 Runtime Alignment (Architecture Mapping)
+Layer	Role
+Job Catalog	Execution Contract Definition
+Runtime Core	Orchestration Engine
+Configuration Layer	Runtime Behavior Definition
+Rule Engine	Decision Layer
+Processing Engine	Transformation Layer
+Delivery Engine	Output Layer
+History Engine	Audit Layer
+🚀 Execution Flow (Final)
+Trigger (User / Scheduler)
+        ↓
+Load Job Contract
+        ↓
+Runtime Core Execution
+        ↓
+Data Source Runtime
+        ↓
+Rule Engine (Config Driven)
+        ↓
+Processing Engine
+        ↓
+Export Engine
+        ↓
 Delivery Engine
+        ↓
+History Engine
+🧠 Key Architectural Shift
+❌ BEFORE
+Job = Python Class
+Job = 기능 단위 코드
+✅ AFTER
+Job = Execution Contract (DB / Config)
+Runtime Core = 실행 엔진
+Engine = 재사용 가능한 기능 단위
+📊 Status Summary
+Job	Status
+RepairPending	Production Reference
+InboundMissing	Planned
+SettlementMissing	Planned
+TcScanMissing	Planned
+AgingRepair	Planned
+DeliveryMismatch	Planned
+InventoryMismatch	Planned
+VendorSummary	Planned
+DailySummary	Planned
+🎯 Design Philosophy (Final)
 
-결과 전달
-
-예시
-
-Excel
-ZIP
-Mail
-Dashboard
+❌ Job을 만드는 시스템이 아니다
+✅ Runtime 위에 Execution Contract를 쌓는 플랫폼이다
