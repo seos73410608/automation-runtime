@@ -7,9 +7,7 @@ from app.excel.excel_reader import read_excel
 from app.excel.excel_exporter import export_excel
 
 from app.services.rule_service import RuleService
-from app.rules.repair_pending_rule import (
-    group_by_vendor
-)
+from app.rules.repair_pending_rule import group_by_vendor
 
 from app.utils.zip_creator import create_zip
 from app.utils.logger import logger
@@ -64,7 +62,6 @@ class RepairPendingJob(BaseJob):
     ):
 
         db = SessionLocal()
-
         repo = AutomationRepository(db)
 
         try:
@@ -79,7 +76,9 @@ class RepairPendingJob(BaseJob):
 
             repo.create_job(job)
 
-            # READ_EXCEL
+            # =========================
+            # 1. READ EXCEL
+            # =========================
             df = read_excel(file_path)
 
             repo.insert_history(
@@ -91,9 +90,9 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
-            # FILTER
-
-
+            # =========================
+            # 2. RULE FILTER (CORE CHANGE)
+            # =========================
             rule_service = RuleService(db)
 
             mask = rule_service.execute(
@@ -112,7 +111,9 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
-            # GROUP
+            # =========================
+            # 3. GROUP BY VENDOR
+            # =========================
             groups = group_by_vendor(filtered)
 
             repo.insert_history(
@@ -124,19 +125,17 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
-            # EXPORT 대상 디렉토리
+            # =========================
+            # 4. EXPORT
+            # =========================
             output_dir = (
                 Path(OUTPUT_DIR)
                 / datetime.now().strftime("%Y%m%d")
                 / job_id
             )
 
-            excel_output_dir = (
-                output_dir
-                / "excel"
-            )
+            excel_output_dir = output_dir / "excel"
 
-            # EXPORT
             files = export_excel(
                 groups,
                 str(excel_output_dir)
@@ -151,7 +150,9 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
-            # ZIP
+            # =========================
+            # 5. ZIP
+            # =========================
             zip_path = create_zip(
                 files,
                 str(output_dir)
@@ -166,9 +167,10 @@ class RepairPendingJob(BaseJob):
                 )
             )
 
-            subject = build_subject(
-                JOB_REPAIR_PENDING
-            )
+            # =========================
+            # 6. MAIL
+            # =========================
+            subject = build_subject(JOB_REPAIR_PENDING)
 
             body = build_body(
                 job_name=JOB_REPAIR_PENDING,
@@ -179,7 +181,6 @@ class RepairPendingJob(BaseJob):
             )
 
             try:
-
                 send_mail(
                     subject=subject,
                     body=body,
@@ -208,6 +209,9 @@ class RepairPendingJob(BaseJob):
 
                 raise
 
+            # =========================
+            # FINAL UPDATE
+            # =========================
             job.total_rows = len(df)
             job.vendor_count = len(groups)
             job.status = STATUS_SUCCESS
@@ -230,11 +234,7 @@ class RepairPendingJob(BaseJob):
             logger.exception(e)
 
             try:
-
-                repo.update_job_status(
-                    job_id,
-                    STATUS_FAILED
-                )
+                repo.update_job_status(job_id, STATUS_FAILED)
 
                 repo.insert_history(
                     AutomationJobHistory(
@@ -260,5 +260,4 @@ class RepairPendingJob(BaseJob):
             )
 
         finally:
-
             db.close()

@@ -45,7 +45,7 @@ RESULT_ZIP_NAME = "result.zip"
 # JOB NAME
 # ==========================================
 
-JOB_REPAIR_PENDING = "RepairPending"
+JOB_REPAIR_PENDING = "repair_pending"
 
 JOB_INBOUND_MISSING = "InboundMissing"
 
