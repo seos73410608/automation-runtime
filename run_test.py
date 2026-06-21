@@ -1,9 +1,12 @@
-from app.jobs.repair_pending_job import RepairPendingJob
+from app.runtime.runtime_service import RuntimeService
 
-job = RepairPendingJob()
+runtime = RuntimeService()
 
-job.execute(
-    job_id="test-001",
+result = runtime.execute(
+    job_name="repair_pending",
+    job_id="test-002",
     file_name="A_S접수현황.xls",
     file_path="C:/SeoS/Claude/sample/A_S접수현황.xls"
 )
+
+print(result)

@@ -3,26 +3,20 @@ from datetime import datetime
 import uuid
 import glob
 
-from fastapi import FastAPI
-from fastapi import Request
-from fastapi import UploadFile
-from fastapi import Form
-
+from fastapi import FastAPI, Request, UploadFile, Form
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
-from app.jobs.repair_pending_job import RepairPendingJob
+from app.runtime.runtime_service import RuntimeService
 
 from app.db.database import SessionLocal
 from app.db.repository import AutomationRepository
 
-from app.scheduler.scheduler_manager import (
-    SchedulerManager
-)
+from app.scheduler.scheduler_manager import SchedulerManager
 
 app = FastAPI(
     title="Automation Runtime",
-    version="0.6.0"
+    version="0.7.1"
 )
 
 templates = Jinja2Templates(
@@ -30,6 +24,8 @@ templates = Jinja2Templates(
 )
 
 scheduler_manager = SchedulerManager()
+
+runtime_service = RuntimeService()
 
 
 @app.on_event("startup")
@@ -61,9 +57,7 @@ async def run_job(
     job: str=Form(...)
 ):
 
-    job_id = str(
-        uuid.uuid4()
-    )
+    job_id = str(uuid.uuid4())
 
     upload_dir = (
         Path("uploads")
@@ -90,42 +84,34 @@ async def run_job(
             await file.read()
         )
 
-    if job == "repair_pending":
+    try:
 
-        result = (
-            RepairPendingJob()
-            .execute(
-                job_id=job_id,
-                file_name=file.filename,
-                file_path=str(save_path)
-            )
+        result = runtime_service.execute(
+            job_name=job,
+            job_id=job_id,
+            file_name=file.filename,
+            file_path=str(save_path)
         )
 
-        return templates.TemplateResponse(
-            request=request,
-            name="result.html",
-            context={
-                "result": result
-            }
-        )
+    except Exception as e:
+
+        result = {
+            "job_name": job,
+            "success": False,
+            "message": str(e)
+        }
 
     return templates.TemplateResponse(
         request=request,
         name="result.html",
         context={
-            "result": {
-                "job_name": job,
-                "success": False,
-                "message": "지원하지 않는 Job"
-            }
+            "result": result
         }
     )
 
 
 @app.get("/history")
-def history(
-    request: Request
-):
+def history(request: Request):
 
     db = SessionLocal()
 
@@ -179,9 +165,7 @@ def job_detail(
 
 
 @app.get("/download/{job_id}")
-def download(
-    job_id: str
-):
+def download(job_id: str):
 
     matches = glob.glob(
         f"output/*/{job_id}/result.zip"
