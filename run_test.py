@@ -4,7 +4,7 @@ runtime = RuntimeService()
 
 result = runtime.execute(
     job_name="repair_pending",
-    job_id="test-002",
+    job_id="test-003",
     file_name="A_S접수현황.xls",
     file_path="C:/SeoS/Claude/sample/A_S접수현황.xls"
 )

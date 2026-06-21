@@ -99,8 +99,131 @@ class AutomationJobHistory(Base):
     )
 
 
+class JobConfig(Base):
+
+    __tablename__ = "tb_job_config"
+
+    config_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    job_name = Column(
+        String(100),
+        nullable=False
+    )
+
+    job_class = Column(
+        String(255),
+        nullable=False
+    )
+
+    input_source_type = Column(
+        String(50),
+        nullable=False
+    )
+
+    output_format = Column(
+        String(20)
+    )
+
+    output_path = Column(
+        String(500)
+    )
+
+    file_name_pattern = Column(
+        String(255)
+    )
+
+    retention_days = Column(
+        Integer
+    )
+
+    email_enabled = Column(
+        String(1)
+    )
+
+    email_receiver = Column(
+        String(255)
+    )
+
+    enabled = Column(
+        String(1)
+    )
+
+    description = Column(
+        String(500)
+    )
+
+    version = Column(
+        String(20)
+    )
+
+    execution_mode = Column(
+        String(20)
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+
+class ExecutionPipeline(Base):
+
+    __tablename__ = "tb_execution_pipeline"
+
+    pipeline_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    job_name = Column(
+        String(100),
+        nullable=False
+    )
+
+    step_order = Column(
+        Integer,
+        nullable=False
+    )
+
+    step_type = Column(
+        String(50),
+        nullable=False
+    )
+
+    step_config = Column(
+        Text
+    )
+
+    enabled = Column(
+        String(1)
+    )
+
+    config_id = Column(
+        BigInteger,
+        ForeignKey(
+            "tb_job_config.config_id"
+        )
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now()
+    )
+
+
 class AutomationSchedule(Base):
-    
+
     __tablename__ = "tb_automation_schedule"
 
     schedule_id = Column(
@@ -115,8 +238,7 @@ class AutomationSchedule(Base):
     )
 
     job_name = Column(
-        String(50),
-        nullable=False
+        String(100)
     )
 
     cron_expression = Column(
@@ -127,6 +249,13 @@ class AutomationSchedule(Base):
     input_file_path = Column(
         String(500),
         nullable=True
+    )
+
+    config_id = Column(
+        BigInteger,
+        ForeignKey(
+            "tb_job_config.config_id"
+        )
     )
 
     enabled = Column(

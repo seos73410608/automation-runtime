@@ -4,7 +4,9 @@ from app.db.models import (
     AutomationJob,
     AutomationJobHistory,
     AutomationSchedule,
-    ScheduleExecution
+    ScheduleExecution,
+    JobConfig,
+    ExecutionPipeline
 )
 
 
@@ -15,6 +17,10 @@ class AutomationRepository:
         db: Session
     ):
         self.db = db
+
+    # ==================================================
+    # JOB
+    # ==================================================
 
     def create_job(
         self,
@@ -115,9 +121,57 @@ class AutomationRepository:
             .all()
         )
 
-    # =========================
+    # ==================================================
+    # JOB CONFIG
+    # ==================================================
+
+    def get_job_config(
+        self,
+        job_name: str
+    ):
+
+        return (
+            self.db.query(
+                JobConfig
+            )
+            .filter(
+                JobConfig.job_name == job_name
+            )
+            .filter(
+                JobConfig.enabled == "Y"
+            )
+            .first()
+        )
+
+    # ==================================================
+    # PIPELINE
+    # ==================================================
+
+    def get_pipeline_steps(
+        self,
+        job_name: str
+    ):
+
+        return (
+            self.db.query(
+                ExecutionPipeline
+            )
+            .filter(
+                ExecutionPipeline.job_name
+                == job_name
+            )
+            .filter(
+                ExecutionPipeline.enabled == "Y"
+            )
+            .order_by(
+                ExecutionPipeline.step_order
+            )
+            .all()
+        )
+
+    # ==================================================
     # Scheduler
-    # =========================
+    # ==================================================
 
     def create_schedule(
         self,
@@ -191,7 +245,7 @@ class AutomationRepository:
         self,
         execution_id: int,
         status: str,
-        message: str = None
+        message: str=None
     ):
 
         execution = (
