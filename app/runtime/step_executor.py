@@ -27,6 +27,13 @@ from app.constants.job_step import (
 
 from app.utils.logger import logger
 
+from app.runtime.factory.reader_factory import (
+    ReaderFactory
+)
+
+from app.runtime.factory.processor_factory import (
+    ProcessorFactory
+)
 
 class StepExecutor:
 
@@ -103,7 +110,18 @@ class StepExecutor:
     # =========================================================
     def _run_source(self, config, context):
 
-        df = read_excel(context.file_path)
+        reader_name = config.get(
+            "reader",
+            "ExcelReader"
+        )
+
+        reader = ReaderFactory.get(
+            reader_name
+        )
+
+        df = reader(
+            context.file_path
+        )
 
         context.data = df
 
@@ -134,7 +152,18 @@ class StepExecutor:
     # =========================================================
     def _run_process(self, config, context):
 
-        context.data = group_by_vendor(context.data)
+        processor_name = config.get(
+            "processor",
+            "VendorGroupingProcessor"
+        )
+
+        processor = ProcessorFactory.get(
+            processor_name
+        )
+
+        context.data = processor.execute(
+            context.data
+        )
 
         logger.info(f"[PROCESS] vendors={len(context.data)}")
 
