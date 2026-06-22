@@ -10,7 +10,7 @@ def main():
     logger.info("[RUN TEST] START repair_pending job")
 
     context = StepContext(
-        job_id="test-006",
+        job_id="test-007",
         file_name="A_S접수현황.xls",
         file_path="C:/SeoS/Claude/sample/A_S접수현황.xls"
     )

@@ -1,7 +1,11 @@
-from app.runtime.job_factory import JobFactory
+from app.runtime.runtime_core import RuntimeCore
+from app.runtime.step_context import StepContext
 
 
 class RuntimeService:
+
+    def __init__(self):
+        self.runtime_core = RuntimeCore()
 
     def execute(
         self,
@@ -11,10 +15,13 @@ class RuntimeService:
         file_path: str
     ):
 
-        job = JobFactory.get(job_name)
-
-        return job.execute(
+        context = StepContext(
             job_id=job_id,
             file_name=file_name,
             file_path=file_path
+        )
+
+        return self.runtime_core.execute(
+            job_name,
+            context
         )

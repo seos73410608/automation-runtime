@@ -1,4 +1,5 @@
-from app.db.models import AutomationPipeline
+from app.db.models import ExecutionPipeline
+from app.utils.logger import logger
 
 
 class PipelineLoader:
@@ -12,13 +13,23 @@ class PipelineLoader:
         job_name 기준으로 pipeline step 로딩
         """
 
-        return (
-            self.db.query(AutomationPipeline)
+        logger.info(
+            f"[PIPELINE LOAD] job_name={job_name}"
+        )
+
+        steps = (
+            self.db.query(ExecutionPipeline)
             .filter(
-                AutomationPipeline.job_name == job_name
+                ExecutionPipeline.job_name == job_name
             )
             .order_by(
-                AutomationPipeline.step_order.asc()
+                ExecutionPipeline.step_order.asc()
             )
             .all()
         )
+
+        logger.info(
+            f"[PIPELINE LOAD] loaded steps={len(steps)}"
+        )
+
+        return steps

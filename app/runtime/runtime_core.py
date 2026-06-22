@@ -9,29 +9,46 @@ from app.utils.logger import logger
 class RuntimeCore:
 
     def __init__(self):
+
         self.db = SessionLocal()
-        self.pipeline_loader = PipelineLoader(self.db)
-        self.step_executor = StepExecutor()
+
+        self.pipeline_loader = PipelineLoader(
+            self.db
+        )
+
+        # DB 주입
+        self.step_executor = StepExecutor(
+            self.db
+        )
 
     def execute(self, job_name, context: StepContext):
 
         try:
 
-            logger.info(f"[RuntimeCore] START job_name={job_name}")
+            logger.info(
+                f"[RuntimeCore] START job_name={job_name}"
+            )
 
-            # 1. pipeline 로딩
-            steps = self.pipeline_loader.load(job_name)
+            # Pipeline Load
+            steps = self.pipeline_loader.load(
+                job_name
+            )
 
             if not steps:
-                raise ValueError(f"No pipeline found: {job_name}")
+                raise ValueError(
+                    f"No pipeline found: {job_name}"
+                )
 
-            logger.info(f"[RuntimeCore] steps loaded: {len(steps)}")
+            logger.info(
+                f"[RuntimeCore] steps loaded: {len(steps)}"
+            )
 
-            # 2. step 실행 루프
+            # Step Loop
             for step in steps:
 
                 logger.info(
-                    f"[STEP] order={step.step_order} type={step.step_type}"
+                    f"[STEP] order={step.step_order} "
+                    f"type={step.step_type}"
                 )
 
                 context = self.step_executor.execute(
@@ -39,17 +56,26 @@ class RuntimeCore:
                     context
                 )
 
-            logger.info(f"[RuntimeCore] FINISH job_name={job_name}")
+            logger.info(
+                f"[RuntimeCore] FINISH job_name={job_name}"
+            )
 
             return context
 
         except Exception as e:
 
             logger.exception(
-                f"[RuntimeCore ERROR] job_name={job_name} error={str(e)}"
+                f"[RuntimeCore ERROR] "
+                f"job_name={job_name} "
+                f"error={str(e)}"
             )
 
             raise
 
         finally:
+
+            logger.info(
+                "[RuntimeCore] DB CLOSE"
+            )
+
             self.db.close()

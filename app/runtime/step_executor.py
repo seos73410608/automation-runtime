@@ -35,6 +35,14 @@ from app.runtime.factory.processor_factory import (
     ProcessorFactory
 )
 
+from app.runtime.factory.export_factory import (
+    ExportFactory
+)
+
+from app.runtime.factory.delivery_factory import (
+    DeliveryFactory
+)
+
 class StepExecutor:
 
     def __init__(self, db=None):
@@ -174,16 +182,32 @@ class StepExecutor:
     # =========================================================
     def _run_export(self, config, context):
 
-        output_path = config.get("output_path", "output/")
+        exporter_name = config.get(
+            "exporter"
+        )
 
-        files = export_excel(
+        output_path = config.get(
+            "output_path",
+            "output/"
+        )
+
+        exporter = ExportFactory.get(
+            exporter_name
+        )
+
+        context.data = exporter.execute(
             context.data,
             output_path
         )
 
-        context.data = files
-
-        logger.info(f"[EXPORT] files={len(files)}")
+        if isinstance(context.data, list):
+            logger.info(
+                f"[EXPORT] files={len(context.data)}"
+            )
+        else:
+            logger.info(
+                f"[EXPORT] path={context.data}"
+            )
 
         return context
 
@@ -210,23 +234,55 @@ class StepExecutor:
     # =========================================================
     def _run_delivery(self, config, context):
 
-        subject = build_subject(JOB_REPAIR_PENDING)
+        sender_name = config.get(
+            "sender",
+            "EmailSender"
+        )
+
+        sender = DeliveryFactory.get(
+            sender_name
+        )
+
+        subject = build_subject(
+            JOB_REPAIR_PENDING
+        )
 
         body = build_body(
             job_name=JOB_REPAIR_PENDING,
-            total_rows=getattr(context, "total_rows", 0),
-            filtered_rows=getattr(context, "filtered_rows", 0),
-            vendor_count=getattr(context, "vendor_count", 0),
-            file_count=len(context.data) if isinstance(context.data, list) else 1
+            total_rows=getattr(
+                context,
+                "total_rows",
+                0
+            ),
+            filtered_rows=getattr(
+                context,
+                "filtered_rows",
+                0
+            ),
+            vendor_count=getattr(
+                context,
+                "vendor_count",
+                0
+            ),
+            file_count=(
+                len(context.data)
+                if isinstance(
+                    context.data,
+                    list
+                )
+                else 1
+            )
         )
 
-        send_mail(
-            subject=subject,
-            body=body,
-            attachment_path=context.data
+        sender.execute(
+            subject,
+            body,
+            context.data
         )
 
-        logger.info(f"[MAIL] sent={TO_EMAIL}")
+        logger.info(
+            f"[MAIL] sent={TO_EMAIL}"
+        )
 
         return context
 
