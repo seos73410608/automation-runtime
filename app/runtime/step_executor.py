@@ -1,15 +1,12 @@
 import json
 import time
 
-from app.excel.excel_reader import read_excel
-from app.excel.excel_exporter import export_excel
-
 from app.services.rule_service import RuleService
-from app.rules.repair_pending_rule import group_by_vendor
 
-from app.utils.zip_creator import create_zip
-from app.mail.mail_sender import send_mail
-from app.mail.mail_template import build_subject, build_body
+from app.mail.mail_template import (
+    build_subject,
+    build_body
+)
 
 from app.config.settings import (
     JOB_REPAIR_PENDING,
@@ -43,6 +40,9 @@ from app.runtime.factory.delivery_factory import (
     DeliveryFactory
 )
 
+from app.utils.zip_creator import create_zip
+
+
 class StepExecutor:
 
     def __init__(self, db=None):
@@ -55,54 +55,88 @@ class StepExecutor:
 
         start_time = time.time()
 
-        # =========================
-        # CONFIG PARSE (SAFE)
-        # =========================
         try:
+
             if isinstance(config, str):
                 config = json.loads(config)
+
         except Exception as e:
-            logger.error(f"[CONFIG ERROR] step={step_type}, error={str(e)}")
+
+            logger.error(
+                f"[CONFIG ERROR] "
+                f"step={step_type}, "
+                f"error={str(e)}"
+            )
+
             config = {}
 
-        logger.info(f"[STEP START] type={step_type}, config={config}")
+        logger.info(
+            f"[STEP START] "
+            f"type={step_type}, "
+            f"config={config}"
+        )
 
         try:
 
-            # =========================
-            # ROUTER
-            # =========================
             if step_type == STEP_READ_EXCEL or step_type == "SOURCE":
-                context = self._run_source(config, context)
+                context = self._run_source(
+                    config,
+                    context
+                )
 
             elif step_type == STEP_FILTER or step_type == "RULE":
-                context = self._run_rule(config, context)
+                context = self._run_rule(
+                    config,
+                    context
+                )
 
             elif step_type == STEP_GROUP or step_type == "PROCESS":
-                context = self._run_process(config, context)
+                context = self._run_process(
+                    config,
+                    context
+                )
 
             elif step_type == STEP_EXPORT:
-                context = self._run_export(config, context)
+                context = self._run_export(
+                    config,
+                    context
+                )
 
             elif step_type == STEP_ZIP:
-                context = self._run_zip(config, context)
+                context = self._run_zip(
+                    config,
+                    context
+                )
 
             elif step_type == STEP_MAIL or step_type == "DELIVERY":
-                context = self._run_delivery(config, context)
+                context = self._run_delivery(
+                    config,
+                    context
+                )
 
             elif step_type == "HISTORY":
-                context = self._run_history(config, context)
+                context = self._run_history(
+                    config,
+                    context
+                )
 
             else:
-                logger.warning(f"[STEP UNKNOWN] type={step_type}")
+
+                logger.warning(
+                    f"[STEP UNKNOWN] "
+                    f"type={step_type}"
+                )
 
             return context
 
         except Exception as e:
 
-            logger.exception(f"[STEP FAIL] type={step_type}, error={str(e)}")
+            logger.exception(
+                f"[STEP FAIL] "
+                f"type={step_type}, "
+                f"error={str(e)}"
+            )
 
-            # STEP6 핵심: context 안정성 유지
             context.error = str(e)
             context.failed_step = step_type
 
@@ -111,10 +145,15 @@ class StepExecutor:
         finally:
 
             duration = time.time() - start_time
-            logger.info(f"[STEP END] type={step_type}, duration={round(duration, 3)}s")
+
+            logger.info(
+                f"[STEP END] "
+                f"type={step_type}, "
+                f"duration={round(duration, 3)}s"
+            )
 
     # =========================================================
-    # 1. SOURCE
+    # SOURCE
     # =========================================================
     def _run_source(self, config, context):
 
@@ -133,16 +172,23 @@ class StepExecutor:
 
         context.data = df
 
-        logger.info(f"[SOURCE] rows={len(df)}")
+        # v0.8.3
+        context.total_rows = len(df)
+
+        logger.info(
+            f"[SOURCE] rows={len(df)}"
+        )
 
         return context
 
     # =========================================================
-    # 2. RULE
+    # RULE
     # =========================================================
     def _run_rule(self, config, context):
 
-        rule_service = RuleService(self.db)
+        rule_service = RuleService(
+            self.db
+        )
 
         mask = rule_service.execute(
             JOB_REPAIR_PENDING,
@@ -151,12 +197,19 @@ class StepExecutor:
 
         context.data = context.data[mask]
 
-        logger.info(f"[RULE] rows={len(context.data)}")
+        # v0.8.3
+        context.filtered_rows = len(
+            context.data
+        )
+
+        logger.info(
+            f"[RULE] rows={len(context.data)}"
+        )
 
         return context
 
     # =========================================================
-    # 3. PROCESS
+    # PROCESS
     # =========================================================
     def _run_process(self, config, context):
 
@@ -173,12 +226,19 @@ class StepExecutor:
             context.data
         )
 
-        logger.info(f"[PROCESS] vendors={len(context.data)}")
+        # v0.8.3
+        context.vendor_count = len(
+            context.data
+        )
+
+        logger.info(
+            f"[PROCESS] vendors={len(context.data)}"
+        )
 
         return context
 
     # =========================================================
-    # 4. EXPORT
+    # EXPORT
     # =========================================================
     def _run_export(self, config, context):
 
@@ -200,11 +260,23 @@ class StepExecutor:
             output_path
         )
 
-        if isinstance(context.data, list):
+        if isinstance(
+            context.data,
+            list
+        ):
+
+            context.output_file_count = len(
+                context.data
+            )
+
             logger.info(
                 f"[EXPORT] files={len(context.data)}"
             )
+
         else:
+
+            context.output_file_count = 1
+
             logger.info(
                 f"[EXPORT] path={context.data}"
             )
@@ -212,11 +284,14 @@ class StepExecutor:
         return context
 
     # =========================================================
-    # 5. ZIP
+    # ZIP
     # =========================================================
     def _run_zip(self, config, context):
 
-        output_path = config.get("output_path", "output/")
+        output_path = config.get(
+            "output_path",
+            "output/"
+        )
 
         zip_path = create_zip(
             context.data,
@@ -225,12 +300,14 @@ class StepExecutor:
 
         context.data = zip_path
 
-        logger.info(f"[ZIP] path={zip_path}")
+        logger.info(
+            f"[ZIP] path={zip_path}"
+        )
 
         return context
 
     # =========================================================
-    # 6. DELIVERY
+    # DELIVERY
     # =========================================================
     def _run_delivery(self, config, context):
 
@@ -249,29 +326,10 @@ class StepExecutor:
 
         body = build_body(
             job_name=JOB_REPAIR_PENDING,
-            total_rows=getattr(
-                context,
-                "total_rows",
-                0
-            ),
-            filtered_rows=getattr(
-                context,
-                "filtered_rows",
-                0
-            ),
-            vendor_count=getattr(
-                context,
-                "vendor_count",
-                0
-            ),
-            file_count=(
-                len(context.data)
-                if isinstance(
-                    context.data,
-                    list
-                )
-                else 1
-            )
+            total_rows=context.total_rows,
+            filtered_rows=context.filtered_rows,
+            vendor_count=context.vendor_count,
+            file_count=context.output_file_count
         )
 
         sender.execute(
@@ -287,10 +345,13 @@ class StepExecutor:
         return context
 
     # =========================================================
-    # 7. HISTORY
+    # HISTORY
     # =========================================================
     def _run_history(self, config, context):
 
-        logger.info("[HISTORY] executed (stub)")
+        logger.info(
+            "[HISTORY] executed (stub)"
+        )
 
         return context
+        
