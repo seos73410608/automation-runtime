@@ -114,11 +114,6 @@ class JobConfig(Base):
         nullable=False
     )
 
-    job_class = Column(
-        String(255),
-        nullable=False
-    )
-
     input_source_type = Column(
         String(50),
         nullable=False
@@ -186,11 +181,6 @@ class ExecutionPipeline(Base):
         autoincrement=True
     )
 
-    job_name = Column(
-        String(100),
-        nullable=False
-    )
-
     step_order = Column(
         Integer,
         nullable=False
@@ -235,10 +225,6 @@ class AutomationSchedule(Base):
     schedule_name = Column(
         String(100),
         nullable=False
-    )
-
-    job_name = Column(
-        String(100)
     )
 
     cron_expression = Column(

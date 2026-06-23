@@ -14,26 +14,58 @@ class RuleRepository:
 
     def find_by_job_name(self, job_name: str) -> list[RuleGroupModel]:
 
+        # -----------------------------------
+        # 1. JobConfig 조회
+        # -----------------------------------
+        config_sql = """
+            SELECT config_id
+            FROM tb_job_config
+            WHERE job_name = :job_name
+            LIMIT 1
+        """
+
+        config_row = self.db.execute(
+            text(config_sql),
+            {"job_name": job_name}
+        ).mappings().first()
+
+        if not config_row:
+            raise ValueError(
+                f"JobConfig not found: {job_name}"
+            )
+
+        config_id = config_row["config_id"]
+
+        # -----------------------------------
+        # 2. Rule 조회
+        # -----------------------------------
         sql = """
             SELECT
                 g.group_id,
                 g.group_name,
                 g.logic_type,
                 g.execution_order AS group_order,
+
                 d.detail_id,
                 d.execution_order AS rule_order,
+
                 r.rule_id,
                 r.field_name,
                 r.operator,
                 r.rule_value
+
             FROM tb_rule_group g
+
             JOIN tb_rule_group_detail d
                 ON g.group_id = d.group_id
+
             JOIN tb_rule r
                 ON d.rule_id = r.rule_id
-            WHERE g.job_name = :job_name
-            AND g.enabled = 'Y'
-            AND r.enabled = 'Y'
+
+            WHERE g.config_id = :config_id
+              AND g.enabled = 'Y'
+              AND r.enabled = 'Y'
+
             ORDER BY
                 g.execution_order,
                 g.group_id,
@@ -42,13 +74,15 @@ class RuleRepository:
 
         result_proxy = self.db.execute(
             text(sql),
-            {"job_name": job_name}
+            {"config_id": config_id}
         )
 
-        rows = result_proxy.mappings().all()  # ⭐ 핵심 변경
+        rows = result_proxy.mappings().all()
 
         if not rows:
-            raise ValueError(f"No rules found for job: {job_name}")
+            raise ValueError(
+                f"No rules found for job: {job_name}"
+            )
 
         grouped = defaultdict(list)
         group_meta = {}
@@ -58,10 +92,13 @@ class RuleRepository:
             group_id = row["group_id"]
 
             if group_id not in group_meta:
+
                 group_meta[group_id] = {
                     "group_name": row["group_name"],
-                    "logic_type": RuleLogic(row["logic_type"]),
-                    "execution_order": row["group_order"]  # ⭐ alias 사용
+                    "logic_type": RuleLogic(
+                        row["logic_type"]
+                    ),
+                    "execution_order": row["group_order"]
                 }
 
             grouped[group_id].append(
