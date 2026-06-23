@@ -1,10 +1,44 @@
 from dataclasses import dataclass
+from typing import Any
+from typing import Optional
 
 
 @dataclass
 class StepContext:
 
+    # =========================
+    # 기본 실행 정보
+    # =========================
     job_id: str
     file_name: str
     file_path: str
-    data: any = None
+
+    # =========================
+    # Runtime Data
+    # =========================
+    data: Any = None
+
+    # =========================
+    # Config 기반 Runtime
+    # =========================
+    config_id: Optional[int] = None
+    job_name: Optional[str] = None
+
+    # =========================
+    # 실행 결과 메타
+    # =========================
+    total_rows: int = 0
+    filtered_rows: int = 0
+    vendor_count: int = 0
+    output_file_count: int = 0
+
+    # =========================
+    # 오류 처리
+    # =========================
+    error: Optional[str] = None
+    failed_step: Optional[str] = None
+
+    # =========================
+    # 실행 통계
+    # =========================
+    execution_mode: Optional[str] = None
