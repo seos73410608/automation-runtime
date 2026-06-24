@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 from typing import Optional
+from datetime import datetime
 
 
 @dataclass
@@ -25,6 +26,13 @@ class StepContext:
     job_name: Optional[str] = None
 
     # =========================
+    # 실행 시작/종료
+    # =========================
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    duration: float = 0.0
+
+    # =========================
     # 실행 결과 메타
     # =========================
     total_rows: int = 0
@@ -33,9 +41,15 @@ class StepContext:
     output_file_count: int = 0
 
     # =========================
+    # 실행 상태
+    # =========================
+    status: str = "RUNNING"
+
+    # =========================
     # 오류 처리
     # =========================
     error: Optional[str] = None
+    error_message: Optional[str] = None
     failed_step: Optional[str] = None
 
     # =========================
