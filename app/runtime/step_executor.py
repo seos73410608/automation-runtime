@@ -42,6 +42,7 @@ from app.runtime.factory.delivery_factory import (
 
 from app.utils.zip_creator import create_zip
 
+from app.history.history_writer import HistoryWriter
 
 class StepExecutor:
 
@@ -349,9 +350,16 @@ class StepExecutor:
     # =========================================================
     def _run_history(self, config, context):
 
+        writer = HistoryWriter(
+            self.db
+        )
+
+        writer.write(
+            context
+        )
+
         logger.info(
-            "[HISTORY] executed (stub)"
+            "[HISTORY] saved"
         )
 
         return context
-        
