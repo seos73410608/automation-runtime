@@ -39,10 +39,18 @@ class RuntimeCore:
             context.start_time = datetime.now()
             context.status = "RUNNING"
 
+            # ------------------------------------
             # Pipeline Load
-            steps = self.pipeline_loader.load(
+            # ------------------------------------
+            pipeline = self.pipeline_loader.load(
                 job_name
             )
+
+            context.job_config = pipeline["job_config"]
+            context.input_config = pipeline["input_config"]
+            context.output_config = pipeline["output_config"]
+
+            steps = pipeline["steps"]
 
             if not steps:
                 raise ValueError(
@@ -53,7 +61,9 @@ class RuntimeCore:
                 f"[RuntimeCore] steps loaded: {len(steps)}"
             )
 
-            # Step Loop
+            # ------------------------------------
+            # Step Execute
+            # ------------------------------------
             for step in steps:
 
                 logger.info(

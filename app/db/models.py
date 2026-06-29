@@ -304,3 +304,122 @@ class ScheduleExecution(Base):
         DateTime,
         server_default=func.now()
     )
+
+class InputConfig(Base):
+
+    __tablename__ = "tb_input_config"
+
+    input_config_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    config_id = Column(
+        BigInteger,
+        ForeignKey(
+            "tb_job_config.config_id"
+        ),
+        nullable=False
+    )
+
+    input_type = Column(
+        String(20),
+        nullable=False
+    )
+
+    sheet_name = Column(
+        String(100)
+    )
+
+    header_row = Column(
+        Integer,
+        nullable=False,
+        default=1
+    )
+
+    data_start_row = Column(
+        Integer
+    )
+
+    skip_rows = Column(
+        Integer,
+        default=0
+    )
+
+    engine = Column(
+        String(30)
+    )
+
+    file_encoding = Column(
+        String(30)
+    )
+
+    column_mapping = Column(
+        Text
+    )
+
+    file_pattern = Column(
+        String(255)
+    )
+
+    enabled = Column(
+        String(1),
+        default="Y"
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+class OutputConfig(Base):
+
+    __tablename__ = "tb_output_config"
+
+    output_config_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    config_id = Column(
+        BigInteger,
+        ForeignKey(
+            "tb_job_config.config_id"
+        ),
+        nullable=False
+    )
+
+    output_type = Column(
+        String(20),
+        nullable=False
+    )
+
+    file_naming_rule = Column(
+        String(255)
+    )
+
+    storage_type = Column(
+        String(20)
+    )
+
+    path_template = Column(
+        String(500)
+    )
+
+    enabled = Column(
+        String(1),
+        default="Y"
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now()
+    )

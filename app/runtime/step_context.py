@@ -1,7 +1,7 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 from typing import Optional
-from datetime import datetime
 
 
 @dataclass
@@ -24,6 +24,15 @@ class StepContext:
     # =========================
     config_id: Optional[int] = None
     job_name: Optional[str] = None
+
+    # Job Config
+    job_config: Any = None
+
+    # Input Config
+    input_config: Any = None
+
+    # Output Config
+    output_config: Any = None
 
     # =========================
     # 실행 시작/종료

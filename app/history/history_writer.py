@@ -10,6 +10,35 @@ class HistoryWriter:
 
     def write(self, context):
 
+        #
+        # 등록된 Job인지 확인
+        #
+        exists_sql = """
+            SELECT COUNT(*)
+            FROM tb_automation_job
+            WHERE job_id = :job_id
+        """
+
+        exists = self.db.execute(
+            text(exists_sql),
+            {
+                "job_id": context.job_id
+            }
+        ).scalar()
+
+        #
+        # 등록되지 않은 Job이면 History Skip
+        #
+        if not exists:
+
+            logger.info(
+                f"[HISTORY WRITER] "
+                f"skip job_id={context.job_id} "
+                f"(not registered)"
+            )
+
+            return
+
         status = "SUCCESS"
 
         if context.error:

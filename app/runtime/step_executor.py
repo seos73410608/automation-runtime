@@ -9,7 +9,6 @@ from app.mail.mail_template import (
 )
 
 from app.config.settings import (
-    JOB_REPAIR_PENDING,
     TO_EMAIL
 )
 
@@ -158,26 +157,71 @@ class StepExecutor:
     # =========================================================
     def _run_source(self, config, context):
 
-        reader_name = config.get(
-            "reader",
-            "ExcelReader"
+        input_config = getattr(
+            context,
+            "input_config",
+            None
         )
 
-        reader = ReaderFactory.get(
-            reader_name
-        )
+        if input_config is not None:
 
+            input_type = input_config.input_type
+            engine = input_config.engine
+
+            header_row = (
+                input_config.header_row
+                if input_config.header_row is not None
+                else 1
+            )
+
+            sheet_name = input_config.sheet_name
+
+        else:
+
+            input_type = "EXCEL"
+            engine = None
+
+            header_row = 1
+            sheet_name = None
+
+        #
+        # Reader 선택
+        #
+        if input_type == "EXCEL":
+
+            reader = ReaderFactory.get(
+                "ExcelReader"
+            )
+
+        else:
+
+            raise ValueError(
+                f"Unsupported input_type: {input_type}"
+            )
+
+        # ↓↓↓ 여기 추가
+        print("reader =", reader)
+        print("module =", reader.__module__)
+        print("name =", reader.__name__)
+        
         df = reader(
-            context.file_path
+            context.file_path,
+            header_row=header_row,
+            sheet_name=sheet_name,
+            engine=engine
         )
 
         context.data = df
 
-        # v0.8.3
         context.total_rows = len(df)
 
         logger.info(
-            f"[SOURCE] rows={len(df)}"
+            "[SOURCE] "
+            f"type={input_type}, "
+            f"engine={engine}, "
+            f"header_row={header_row}, "
+            f"sheet_name={sheet_name}, "
+            f"rows={len(df)}"
         )
 
         return context
@@ -192,13 +236,12 @@ class StepExecutor:
         )
 
         mask = rule_service.execute(
-            JOB_REPAIR_PENDING,
+            context.job_name,
             context.data
         )
 
         context.data = context.data[mask]
 
-        # v0.8.3
         context.filtered_rows = len(
             context.data
         )
@@ -322,11 +365,11 @@ class StepExecutor:
         )
 
         subject = build_subject(
-            JOB_REPAIR_PENDING
+            context.job_name
         )
 
         body = build_body(
-            job_name=JOB_REPAIR_PENDING,
+            job_name=context.job_name,
             total_rows=context.total_rows,
             filtered_rows=context.filtered_rows,
             vendor_count=context.vendor_count,

@@ -1,5 +1,9 @@
-from app.db.models import ExecutionPipeline
-from app.db.models import JobConfig
+from app.db.models import (
+    ExecutionPipeline,
+    InputConfig,
+    JobConfig,
+    OutputConfig
+)
 
 from app.utils.logger import logger
 
@@ -13,33 +17,69 @@ class PipelineLoader:
 
         """
         job_name → config_id 변환 후
-        pipeline step 로딩
+
+        - JobConfig
+        - InputConfig
+        - OutputConfig
+        - ExecutionPipeline
+
+        조회
         """
 
         logger.info(
             f"[PIPELINE LOAD] job_name={job_name}"
         )
 
-        # JobConfig 조회
-        config = (
+        # ----------------------------------------
+        # JobConfig
+        # ----------------------------------------
+        job_config = (
             self.db.query(JobConfig)
             .filter(
-                JobConfig.job_name == job_name
+                JobConfig.job_name == job_name,
+                JobConfig.enabled == "Y"
             )
             .first()
         )
 
-        if not config:
+        if not job_config:
+
             raise ValueError(
                 f"JobConfig not found: {job_name}"
             )
 
-        # config_id 기반 Pipeline 조회
+        # ----------------------------------------
+        # InputConfig
+        # ----------------------------------------
+        input_config = (
+            self.db.query(InputConfig)
+            .filter(
+                InputConfig.config_id == job_config.config_id,
+                InputConfig.enabled == "Y"
+            )
+            .first()
+        )
+
+        # ----------------------------------------
+        # OutputConfig
+        # ----------------------------------------
+        output_config = (
+            self.db.query(OutputConfig)
+            .filter(
+                OutputConfig.config_id == job_config.config_id,
+                OutputConfig.enabled == "Y"
+            )
+            .first()
+        )
+
+        # ----------------------------------------
+        # Pipeline
+        # ----------------------------------------
         steps = (
             self.db.query(ExecutionPipeline)
             .filter(
-                ExecutionPipeline.config_id
-                == config.config_id
+                ExecutionPipeline.config_id == job_config.config_id,
+                ExecutionPipeline.enabled == "Y"
             )
             .order_by(
                 ExecutionPipeline.step_order.asc()
@@ -51,4 +91,9 @@ class PipelineLoader:
             f"[PIPELINE LOAD] loaded steps={len(steps)}"
         )
 
-        return steps
+        return {
+            "job_config": job_config,
+            "input_config": input_config,
+            "output_config": output_config,
+            "steps": steps
+        }
