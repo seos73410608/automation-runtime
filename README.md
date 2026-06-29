@@ -1,83 +1,78 @@
 # Automation Runtime
 
-설정 기반 업무 자동화를 위한 Python Runtime Platform
+Configuration Driven Automation Runtime Platform
 
-**Current Version: v0.8.0**
+**Current Version: v0.9.0**
 
 ---
 
 # Overview
 
-Automation Runtime은 반복적인 엑셀 기반 업무를 자동화하기 위해 설계된 Runtime Platform이다.
+Automation Runtime은 반복적인 업무를 설정(Configuration)만으로 실행할 수 있도록 설계된 Runtime Platform이다.
 
-단순한 개별 스크립트가 아니라,
+업무별 Python Script를 만드는 것이 아니라,
 
 * Runtime Core
 * Pipeline Runtime
 * Factory Runtime
-* Web Runtime
+* Rule Runtime
 * Scheduler Runtime
-* Rule Engine
-* Excel Processing
+* Web Runtime
 * Export Runtime
 * Delivery Runtime
-* Execution History
+* History Runtime
 
-를 하나의 공통 플랫폼으로 제공한다.
-
-새로운 업무가 추가되더라도 Runtime은 그대로 유지하고 Execution Pipeline만 추가하는 구조를 목표로 한다.
+위에 새로운 Pipeline과 Configuration만 추가하여 업무를 확장하는 구조를 목표로 한다.
 
 ---
 
-# Architecture
+# Runtime Architecture
 
 ```text
-                 Web UI
-                    │
-                    ▼
+               Web UI
+                  │
+                  ▼
+
+            Runtime Service
+
+                  │
+                  ▼
 
              Runtime Core
 
-                    │
+                  │
+                  ▼
 
-          Execution Pipeline
+          Pipeline Loader
 
-                    │
+                  │
+                  ▼
 
-      ┌─────────────┼─────────────┐
-      ▼             ▼             ▼
+             Step Executor
 
- ReaderFactory ProcessorFactory ExportFactory
+                  │
+      ┌───────────┼───────────┐
+      ▼           ▼           ▼
 
-                    │
+   SOURCE       RULE      PROCESS
+      │           │           │
+      ▼           ▼           ▼
 
-             DeliveryFactory
+   EXPORT     DELIVERY    HISTORY
 
-                    │
+                  │
+                  ▼
 
-              History Engine
+        Execution Log Repository
 ```
 
 ---
 
-# Core Features
+# Runtime Pipeline
 
-## Runtime Core
+지원 Step
 
-Runtime 전체 실행 흐름 제어
-
-* Pipeline 실행
-* Context 관리
-* Exception 처리
-* History 기록
-
----
-
-## Pipeline Runtime
-
-DB 기반 실행 파이프라인
-
-```text
+```
 SOURCE
  ↓
 RULE
@@ -91,6 +86,39 @@ DELIVERY
 HISTORY
 ```
 
+RuntimeCore가 모든 Step을 순차적으로 실행하며 StepContext를 공유한다.
+
+---
+
+# Runtime Core
+
+주요 역할
+
+* Pipeline Load
+* Step Execute
+* Runtime Metadata 관리
+* Exception Handling
+* Execution Log 저장
+
+---
+
+# Runtime Components
+
+## PipelineLoader
+
+DB에서 Pipeline 정보를 로드한다.
+
+* Job Configuration
+* Input Configuration
+* Output Configuration
+* Step Configuration
+
+---
+
+## StepExecutor
+
+Step Type에 따라 Factory를 호출한다.
+
 지원 Step
 
 * SOURCE
@@ -102,151 +130,98 @@ HISTORY
 
 ---
 
-## Factory Runtime
+## StepContext
 
-### ReaderFactory
+Runtime 전체에서 공유되는 Context
+
+관리 정보
+
+* Job Metadata
+* Runtime Status
+* Runtime Duration
+* Input Data
+* Output Data
+* Error Information
+
+---
+
+# Factory Runtime
+
+## ReaderFactory
 
 * ExcelReader
 
-### ProcessorFactory
+지원
+
+* xls
+* xlsx
+
+---
+
+## Rule Runtime
+
+지원 Rule
+
+* Repair Pending Rule
+* Order Validation Rule
+
+---
+
+## ProcessorFactory
 
 * VendorGroupingProcessor
 
-### ExportFactory
+---
+
+## ExportFactory
 
 * VendorExcelExporter
 * ZipExporter
 
-### DeliveryFactory
+---
+
+## DeliveryFactory
 
 * EmailSender
 
----
-
-## Web Runtime
-
-사용자가 브라우저를 통해 파일을 업로드하고 즉시 실행할 수 있다.
-
-지원 기능
-
-* Upload
-* Execute
-* Download
-* History 조회
+SMTP 기반 메일 발송 지원
 
 ---
 
-## Scheduler Runtime
+## History Runtime
 
-DB에 등록된 Cron Schedule을 기반으로 자동 실행할 수 있다.
+HistoryWriter
 
-지원 기능
+운영 Job만 History 저장
 
-* APScheduler
-* Startup Registration
-* Schedule Execution History
-* Automatic Job Execution
+테스트 Job은 자동 Skip
 
 ---
 
-## Execution History
+## Execution Log
 
-모든 실행 이력을 DB에 저장한다.
+ExecutionLogRepository
 
-* Job 실행 이력
-* Step 실행 이력
-* Scheduler 실행 이력
+모든 Runtime 실행 결과 저장
 
----
+기록 항목
 
-# Technology Stack
-
-## Backend
-
-* Python 3.12
-* FastAPI
-* Jinja2
-* Uvicorn
-
-## Database
-
-* MariaDB
-* SQLAlchemy
-
-## Scheduler
-
-* APScheduler
-
-## Data Processing
-
-* Pandas
-* OpenPyXL
-* xlrd
-
-## Notification
-
-* SMTP
-* Gmail App Password
+* Job
+* Runtime
+* Duration
+* Status
+* Error Message
+* Statistics
 
 ---
 
-# Database Design
-
-## Runtime Domain
-
-TB_EXECUTION_PIPELINE
-
-TB_JOB_CONFIG
-
----
-
-## Job Domain
-
-TB_AUTOMATION_JOB
-
-TB_AUTOMATION_JOB_HISTORY
-
----
-
-## Scheduler Domain
-
-TB_AUTOMATION_SCHEDULE
-
-TB_SCHEDULE_EXECUTION
-
----
-
-# Runtime Execution Flow
-
-```text
-User / Scheduler
-        ↓
-Runtime Core
-        ↓
-Load Pipeline
-        ↓
-Execute Step
-        ↓
-Factory Runtime
-        ↓
-Output
-        ↓
-History
-```
-
----
-
-# Production Reference Job
+# Built-in Jobs
 
 ## Repair Pending
 
-Status
-
-Production Reference Job
-
 Pipeline
 
-```text
+```
 SOURCE
  ↓
 RULE
@@ -262,15 +237,87 @@ DELIVERY
 HISTORY
 ```
 
-지원 기능
+기능
 
 * Excel Read
-* Rule Filtering
 * Vendor Grouping
-* Vendor Excel Export
-* ZIP Packaging
+* Vendor Export
+* ZIP Export
 * Email Delivery
 * History Logging
+
+---
+
+## Order Validation
+
+Pipeline
+
+```
+SOURCE
+ ↓
+RULE
+ ↓
+HISTORY
+```
+
+기능
+
+* Excel Read
+* Event Validation
+* Invalid Data Filtering
+* Execution Logging
+
+---
+
+# Technology Stack
+
+## Backend
+
+* Python 3.12
+* FastAPI
+* SQLAlchemy
+* Uvicorn
+
+## Database
+
+* MariaDB
+
+## Scheduler
+
+* APScheduler
+
+## Data
+
+* Pandas
+* OpenPyXL
+* xlrd
+
+## Delivery
+
+* SMTP
+* Gmail
+
+---
+
+# Database
+
+주요 테이블
+
+## Runtime
+
+* TB_EXECUTION_PIPELINE
+* TB_RUNTIME_EXECUTION_LOG
+
+## Job
+
+* TB_AUTOMATION_JOB
+* TB_AUTOMATION_JOB_STEP
+* TB_AUTOMATION_JOB_HISTORY
+
+## Scheduler
+
+* TB_AUTOMATION_SCHEDULE
+* TB_SCHEDULE_EXECUTION
 
 ---
 
@@ -281,114 +328,116 @@ HISTORY
 | Runtime Core            | ✅      |
 | Pipeline Runtime        | ✅      |
 | Factory Runtime         | ✅      |
-| Web Runtime             | ✅      |
-| Scheduler Runtime       | ✅      |
-| Email Delivery          | ✅      |
+| Rule Runtime            | ✅      |
+| Execution Log           | ✅      |
+| History Runtime         | ✅      |
+| Excel Runtime           | ✅      |
 | ZIP Export              | ✅      |
-| Execution History       | ✅      |
-| Job Configuration       | 🚧     |
-| Rule Configuration      | 🚧     |
+| Email Delivery          | ✅      |
+| Scheduler Runtime       | ✅      |
+| Order Validation        | ✅      |
+| Job Configuration UI    | 🚧     |
 | Scheduler Management UI | 🚧     |
 
 ---
 
 # Version History
 
+## v0.9.0
+
+* Runtime Metadata
+* Execution Log
+* History Runtime 개선
+* Order Validation Runtime
+* Rule Runtime 확장
+* Runtime 안정화
+
 ## v0.8.0
 
-* Pipeline Runtime Complete
-* Factory Runtime Complete
-* ExportFactory
-* DeliveryFactory
-* DB Pipeline Integration
-* Runtime Core Refactoring
+* Pipeline Runtime
+* Factory Runtime
+* Export Runtime
+* Delivery Runtime
 
 ## v0.6.0
 
-* APScheduler Integration
-* Database-driven Schedule Management
-* Scheduler Execution History
-* Automatic Job Execution
+* Scheduler Runtime
 
 ## v0.5.x
 
-* FastAPI Runtime
+* Web Runtime
 * Excel Upload
-* Web Execution
-* History UI
 
 ---
 
 # Roadmap
 
-## v0.8.x
-
-Runtime Productization
+## v0.10.x
 
 * Job Configuration
 * Rule Configuration
 * Scheduler Management UI
-* Operations Center
-
-## v0.9.x
-
-Data Source Runtime
-
-* CSV
-* MariaDB
-* REST API
+* Runtime Dashboard
 
 ## v1.0.0
 
 Automation Platform
 
-* Multi Job Runtime
-* Rule Engine
-* Data Source Runtime
+* Multi Runtime
+* REST Runtime
+* CSV Runtime
+* Database Runtime
 * Slack Delivery
 * Teams Delivery
-* Dashboard
+* Monitoring Dashboard
 
 ---
 
 # Design Philosophy
 
-```text
-Input
- ↓
-Pipeline
- ↓
-Processing
- ↓
+```
+Configuration
+      ↓
+
+Execution Pipeline
+      ↓
+
+Runtime Core
+      ↓
+
+Factory Runtime
+      ↓
+
 Delivery
- ↓
-History
+      ↓
+
+Execution Log
 ```
 
-업무마다 별도의 매크로를 만드는 것이 아니라,
+Runtime는 변경하지 않는다.
 
-공통 Runtime 위에 Execution Pipeline과 Configuration을 추가하여 확장 가능한 업무 자동화 플랫폼을 구축하는 것을 목표로 한다.
+Pipeline과 Configuration만 추가하여 업무를 확장한다.
 
 ---
 
-## Core Principle
+# Core Principle
 
-❌ Job 중심 시스템
+❌ Job 중심
 
-❌ 업무별 스크립트 생성
+❌ 업무별 Script
 
-✅ Runtime 중심 플랫폼
+✅ Runtime 중심
 
-✅ Pipeline 기반 실행
+✅ Pipeline 기반
 
-✅ Configuration 기반 확장
+✅ Configuration 기반
 
-```text
+```
 Execution Contract
         +
 Execution Pipeline
         +
 Runtime Core
         =
-Automation Runtime
+Automation Runtime Platform
 ```
