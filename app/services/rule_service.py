@@ -5,6 +5,10 @@ from app.rules.order_validation_rule_group import (
     validate_order
 )
 
+from app.rules.settlement_rule_group import (
+    settlement_rule_group
+)
+
 
 class RuleService:
 
@@ -14,11 +18,18 @@ class RuleService:
     def execute(self, job_name: str, df):
 
         # =====================================
-        # v0.9.0 Order Validation 전용
+        # v0.9.0 Order Validation
         # =====================================
         if job_name == "order_validation":
 
             return validate_order(df)
+
+        # =====================================
+        # v0.9.2 Settlement
+        # =====================================
+        if job_name == "settlement":
+
+            return settlement_rule_group(df)
 
         # =====================================
         # 기존 DB Rule Engine

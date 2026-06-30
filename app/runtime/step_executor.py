@@ -43,6 +43,7 @@ from app.utils.zip_creator import create_zip
 
 from app.history.history_writer import HistoryWriter
 
+
 class StepExecutor:
 
     def __init__(self, db=None):
@@ -184,9 +185,6 @@ class StepExecutor:
             header_row = 1
             sheet_name = None
 
-        #
-        # Reader 선택
-        #
         if input_type == "EXCEL":
 
             reader = ReaderFactory.get(
@@ -199,11 +197,6 @@ class StepExecutor:
                 f"Unsupported input_type: {input_type}"
             )
 
-        # ↓↓↓ 여기 추가
-        print("reader =", reader)
-        print("module =", reader.__module__)
-        print("name =", reader.__name__)
-        
         df = reader(
             context.file_path,
             header_row=header_row,
@@ -270,14 +263,42 @@ class StepExecutor:
             context.data
         )
 
-        # v0.8.3
-        context.vendor_count = len(
-            context.data
-        )
+        #
+        # Processor별 후처리
+        #
+        if processor_name == "VendorGroupingProcessor":
 
-        logger.info(
-            f"[PROCESS] vendors={len(context.data)}"
-        )
+            context.vendor_count = len(
+                context.data
+            )
+
+            logger.info(
+                f"[PROCESS] vendors={context.vendor_count}"
+            )
+
+        elif processor_name == "SettlementAggregationProcessor":
+
+            context.vendor_count = len(
+                context.data
+            )
+
+            logger.info(
+                "[AGGREGATION RESULT] "
+                f"vendors={context.vendor_count}"
+            )
+
+            logger.info(
+                "\n" +
+                context.data.to_string(
+                    index=False
+                )
+            )
+
+        else:
+
+            logger.info(
+                f"[PROCESS] processor={processor_name}"
+            )
 
         return context
 
