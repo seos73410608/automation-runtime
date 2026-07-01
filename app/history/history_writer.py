@@ -19,6 +19,8 @@ class HistoryWriter:
             WHERE job_id = :job_id
         """
 
+        logger.info(f"[DEBUG] HistoryWriter job_id={context.job_id}")
+
         exists = self.db.execute(
             text(exists_sql),
             {
@@ -26,6 +28,8 @@ class HistoryWriter:
             }
         ).scalar()
 
+        logger.info(f"[DEBUG] exists={exists}")
+        
         #
         # 등록되지 않은 Job이면 History Skip
         #

@@ -1,6 +1,9 @@
 import json
 import time
 
+from pathlib import Path
+from datetime import datetime
+
 from app.services.rule_service import RuleService
 
 from app.mail.mail_template import (
@@ -311,9 +314,20 @@ class StepExecutor:
             "exporter"
         )
 
-        output_path = config.get(
+        base_output = config.get(
             "output_path",
-            "output/"
+            "output"
+        )
+
+        output_path = (
+            Path(base_output)
+            / datetime.now().strftime("%Y%m%d")
+            / context.job_id
+        )
+
+        output_path.mkdir(
+            parents=True,
+            exist_ok=True
         )
 
         exporter = ExportFactory.get(
@@ -322,7 +336,7 @@ class StepExecutor:
 
         context.data = exporter.execute(
             context.data,
-            output_path
+            str(output_path)
         )
 
         if isinstance(
@@ -353,14 +367,25 @@ class StepExecutor:
     # =========================================================
     def _run_zip(self, config, context):
 
-        output_path = config.get(
+        base_output = config.get(
             "output_path",
-            "output/"
+            "output"
+        )
+
+        output_path = (
+            Path(base_output)
+            / datetime.now().strftime("%Y%m%d")
+            / context.job_id
+        )
+
+        output_path.mkdir(
+            parents=True,
+            exist_ok=True
         )
 
         zip_path = create_zip(
             context.data,
-            output_path
+            str(output_path)
         )
 
         context.data = zip_path
@@ -370,7 +395,6 @@ class StepExecutor:
         )
 
         return context
-
     # =========================================================
     # DELIVERY
     # =========================================================
